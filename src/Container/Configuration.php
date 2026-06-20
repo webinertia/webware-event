@@ -2,6 +2,16 @@
 
 declare(strict_types=1);
 
+/**
+ * This file is part of the Webware Webware Event package.
+ *
+ * Copyright (c) 2026 Joey Smith <jsmith@webinertia.net>
+ * and contributors.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Webware\Event\Container;
 
 use Phly\EventDispatcher\ListenerProvider\AttachableListenerProvider;
@@ -21,11 +31,12 @@ final readonly class Configuration extends Config
     {
         $dispatcher = $container->get(EventDispatcherInterface::class);
         Assert::isInstanceOf($dispatcher, EventDispatcherInterface::class);
+
         return $dispatcher;
     }
 
     /**
-     * @return array<class-string, array<int, class-string|array{listener: callable|class-string, priority?: int}>>
+     * @return array<class-string, array<int, array{listener: callable|class-string, priority?: int}|class-string>>
      */
     public static function getListeners(ContainerInterface $container, string $callingFactory): array
     {
@@ -35,7 +46,7 @@ final readonly class Configuration extends Config
         $config = $container->get('config');
         Assert::isArray($config);
 
-        /** @var array<class-string, array<int, class-string|array{listener: callable|class-string, priority?: int}>> $listeners */
+        /** @var array<class-string, array<int, array{listener: callable|class-string, priority?: int}|class-string>> $listeners */
         $listeners = $config[ConfigProvider::LISTENER_KEY] ?? [];
 
         return $listeners;

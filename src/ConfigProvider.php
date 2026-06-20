@@ -2,6 +2,16 @@
 
 declare(strict_types=1);
 
+/**
+ * This file is part of the Webware Webware Event package.
+ *
+ * Copyright (c) 2026 Joey Smith <jsmith@webinertia.net>
+ * and contributors.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Webware\Event;
 
 use Phly\EventDispatcher\EventDispatcher;
@@ -18,7 +28,7 @@ final readonly class ConfigProvider
     /**
      * @return array{
      *     dependencies: array{aliases: array<class-string, class-string>, factories: array<class-string, class-string>},
-     *     listeners: array<class-string, array<int, class-string|array{listener: callable|class-string, priority?: int}>>,
+     *     listeners: array<class-string, array<int, array{listener: callable|class-string, priority?: int}|class-string>>,
      *     listener_providers: class-string[],
      * }
      */

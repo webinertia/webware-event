@@ -2,14 +2,23 @@
 
 declare(strict_types=1);
 
+/**
+ * This file is part of the Webware Webware Event package.
+ *
+ * Copyright (c) 2026 Joey Smith <jsmith@webinertia.net>
+ * and contributors.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Webware\EventTest;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 use Webware\Event\Event;
-use Webware\Event\EventInterface;
-use Webware\Event\EventPropagationInterface;
 use Webware\Event\EventPropagationTrait;
 
 #[CoversClass(Event::class)]
@@ -61,15 +70,15 @@ final class EventTest extends TestCase
 
     public function testGetTargetReturnsProvidedTarget(): void
     {
-        $target = new \stdClass();
+        $target = new stdClass();
         $event  = new Event(null, $target);
         self::assertSame($target, $event->getTarget());
     }
 
     public function testSetTargetUpdatesTarget(): void
     {
-        $target  = new \stdClass();
-        $target2 = new \stdClass();
+        $target  = new stdClass();
+        $target2 = new stdClass();
 
         $event = new Event(null, $target);
         $event->setTarget($target2);

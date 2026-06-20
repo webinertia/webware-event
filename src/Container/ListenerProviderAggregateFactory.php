@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 /**
- * This file is part of the Webware Event package.
+ * This file is part of the Webware Webware Event package.
  *
- * Copyright (c) 2026 Joey (aka Tyrsson) Smith <jsmith@webinertia.net>
+ * Copyright (c) 2026 Joey Smith <jsmith@webinertia.net>
  * and contributors.
  *
  * For the full copyright and license information, please view the LICENSE
@@ -18,7 +18,6 @@ use Phly\EventDispatcher\LazyListener;
 use Phly\EventDispatcher\ListenerProvider\ListenerProviderAggregate;
 use Psr\Container\ContainerInterface;
 use Psr\EventDispatcher\ListenerProviderInterface;
-use Webware\Event\ConfigProvider;
 
 use function is_array;
 use function is_callable;
