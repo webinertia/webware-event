@@ -1,9 +1,17 @@
 {
     "additional_checks": [
         {
+            "name": "PHP CS Fixer",
+            "job": {
+                "php": "8.5",
+                "dependencies": "latest",
+                "command": "composer require --dev friendsofphp/php-cs-fixer && vendor/bin/php-cs-fixer check"
+            }
+        },
+        {
             "name": "PhpStan",
             "job": {
-                "php": "8.2",
+                "php": "8.5",
                 "dependencies": "latest",
                 "command": "composer require --dev phpstan/phpstan && vendor/bin/phpstan analyse"
             }
