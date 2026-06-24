@@ -2,6 +2,9 @@
     "ignore_php_platform_requirements": {
         "8.5": true
     },
+    "additional_composer_arguments": [
+        "--ignore-platform-req=php"
+    ],
     "additional_checks": [
         {
             "name": "PHP CS Fixer",
