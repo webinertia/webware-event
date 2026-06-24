@@ -1,4 +1,7 @@
 {
+    "additional_composer_arguments": [
+        "--ignore-platform-req=php"
+    ],
     "additional_checks": [
         {
             "name": "PHP CS Fixer",
