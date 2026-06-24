@@ -1,5 +1,5 @@
 {
-    "ignore_php_platform_requirement": true,
+    "ignore_php_platform_requirement": "true",
     "additional_checks": [
         {
             "name": "PHP CS Fixer",
