@@ -1,12 +1,12 @@
 {
+    "ignore_php_platform_requirement": true,
     "additional_checks": [
         {
             "name": "PHP CS Fixer",
             "job": {
                 "php": "8.5",
                 "dependencies": "latest",
-                "command": "composer require --dev friendsofphp/php-cs-fixer && vendor/bin/php-cs-fixer check",
-                "ignore_php_platform_requirement": true
+                "command": "composer require --dev friendsofphp/php-cs-fixer && vendor/bin/php-cs-fixer check"
             }
         },
         {
@@ -14,8 +14,7 @@
             "job": {
                 "php": "8.5",
                 "dependencies": "latest",
-                "command": "composer require --dev phpstan/phpstan && vendor/bin/phpstan analyse",
-                "ignore_php_platform_requirement": true
+                "command": "composer require --dev phpstan/phpstan && vendor/bin/phpstan analyse"
             }
         }
     ]
