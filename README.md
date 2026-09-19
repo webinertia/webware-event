@@ -106,7 +106,7 @@ The `EventDispatcherMiddleware` attaches the dispatcher as a request attribute. 
 | Array with `priority` | `['listener' => X::class, 'priority' => 100]` | Resolved via `PrioritizedListenerProvider` |
 | Callable | `fn(Event $e) => ...` | Attached directly |
 
-Allows an object to carry an event instance. Intended for listeners that need access to the event they're processing.
+A class-string resolves through the container only when the container has it; otherwise a callable string is attached as-is, and an entry that is neither is skipped.
 
 ## Middleware
 
@@ -144,7 +144,7 @@ ConfigProvider ──▶ container wiring (aliases, factories, listeners)
 | `ListenerProviderAggregateFactory` | `Webware\Event\Container` | Builds the listener aggregate from config |
 | `EventDispatcherAwareDelegator` | `Webware\Event\Container` | Injects the dispatcher into aware services |
 | `EventDispatcherMiddleware` | `Webware\Event\Http\Middleware` | PSR-15 middleware for request-scoped dispatch |
-| `EventAwareInterface` / `EventAwareTrait` | `Webware\Event` | Pattern for event-carrying objects |
+| `EventAwareInterface` / `EventAwareTrait` | `Webware\Event` | Pattern for event-carrying objects: an object can carry the event it is processing |
 | `EventDispatcherAwareInterface` / `EventDispatcherAwareTrait` | `Webware\Event` | Pattern for event-dispatching services |
 | `EventInterface` | `Webware\Event` | Contract an event satisfies; `Event` implements it |
 | `ListenerInterface` | `Webware\Event` | Contract a listener satisfies (`__invoke(EventInterface $event): void`) |
