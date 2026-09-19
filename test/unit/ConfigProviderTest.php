@@ -23,8 +23,8 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\EventDispatcher\ListenerProviderInterface;
 use Webware\Event\ConfigProvider;
 use Webware\Event\Container\ListenerProviderAggregateFactory;
-use Webware\Event\Middleware\EventDispatcherMiddleware;
-use Webware\Event\Middleware\EventDispatcherMiddlewareFactory;
+use Webware\Event\Http\Middleware\Container\EventDispatcherMiddlewareFactory;
+use Webware\Event\Http\Middleware\EventDispatcherMiddleware;
 
 #[CoversClass(ConfigProvider::class)]
 #[CoversMethod(ConfigProvider::class, '__invoke')]

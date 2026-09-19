@@ -141,7 +141,7 @@ ConfigProvider ──▶ container wiring (aliases, factories, listeners)
 | `Configuration` | `Webware\Event\Container` | Typed, validated config extraction from the container |
 | `ListenerProviderAggregateFactory` | `Webware\Event\Container` | Builds the listener aggregate from config |
 | `EventDispatcherAwareDelegator` | `Webware\Event\Container` | Injects the dispatcher into aware services |
-| `EventDispatcherMiddleware` | `Webware\Event\Middleware` | PSR-15 middleware for request-scoped dispatch |
+| `EventDispatcherMiddleware` | `Webware\Event\Http\Middleware` | PSR-15 middleware for request-scoped dispatch |
 | `EventAwareInterface` / `EventAwareTrait` | `Webware\Event` | Pattern for event-carrying objects |
 | `EventDispatcherAwareInterface` / `EventDispatcherAwareTrait` | `Webware\Event` | Pattern for event-dispatching services |
 | `EventInterface` | `Webware\Event` | Contract an event satisfies; `Event` implements it |
