@@ -140,8 +140,7 @@ ConfigProvider ──▶ container wiring (aliases, factories, listeners)
 | Class | Namespace | Role |
 | --- | --- | --- |
 | `Event` | `Webware\Event` | Concrete event with name, target, params, and propagation control |
-| `ConfigProvider` | `Webware\Event` | Dependency wiring and default config |
-| `Configuration` | `Webware\Event\Container` | Typed, validated config extraction from the container |
+| `ConfigProvider` | `Webware\Event` | Dependency wiring, default config, and the `ConfigShape` type alias |
 | `ListenerProviderAggregateFactory` | `Webware\Event\Container` | Builds the listener aggregate from config |
 | `EventDispatcherAwareDelegator` | `Webware\Event\Container` | Injects the dispatcher into aware services |
 | `EventDispatcherMiddleware` | `Webware\Event\Http\Middleware` | PSR-15 middleware for request-scoped dispatch |
@@ -151,13 +150,27 @@ ConfigProvider ──▶ container wiring (aliases, factories, listeners)
 | `ListenerInterface` | `Webware\Event` | Contract a listener satisfies (`__invoke(EventInterface $event): void`) |
 | `EventPropagationInterface` / `EventPropagationTrait` | `Webware\Event` | Pattern for stoppable propagation |
 
+Config arrays are typed by the `@type ConfigShape` alias declared on `Webware\Event\ConfigProvider` —
+consumers `@import-type ConfigShape from ConfigProvider` and read the keys directly, rather than going
+through an accessor class. The traits declare `@require-implements`, so mago reports a class that uses a
+trait without also implementing its interface.
+
 ## Development
 
 ```bash
-composer check-all    # Run coding standards, static analysis, and tests
-composer cs-fix       # Auto-fix coding standard violations
-composer sa           # PHPStan level 10 static analysis
-composer test         # PHPUnit test suite
+composer test              # unit suite
+composer test-integration  # integration suite (in-process ServiceManager wiring)
+composer test-coverage     # unit suite with clover + HTML coverage
+composer mutation-test     # Infection, with Mago as staticAnalysisTool
+composer test-all          # test + test-integration + mutation-test
+```
+
+Every command also runs in the tooling container, which needs no native PHP toolchain:
+
+```bash
+docker compose up -d
+docker compose exec tooling composer test
+docker compose exec tooling mago format --check
 ```
 
 ## License
