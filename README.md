@@ -144,6 +144,9 @@ ConfigProvider ──▶ container wiring (aliases, factories, listeners)
 | `EventDispatcherMiddleware` | `Webware\Event\Middleware` | PSR-15 middleware for request-scoped dispatch |
 | `EventAwareInterface` / `EventAwareTrait` | `Webware\Event` | Pattern for event-carrying objects |
 | `EventDispatcherAwareInterface` / `EventDispatcherAwareTrait` | `Webware\Event` | Pattern for event-dispatching services |
+| `EventInterface` | `Webware\Event` | Contract an event satisfies; `Event` implements it |
+| `ListenerInterface` | `Webware\Event` | Contract a listener satisfies (`__invoke(EventInterface $event): void`) |
+| `EventPropagationInterface` / `EventPropagationTrait` | `Webware\Event` | Pattern for stoppable propagation |
 
 ## Development
 
