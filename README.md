@@ -106,7 +106,7 @@ The `EventDispatcherMiddleware` attaches the dispatcher as a request attribute. 
 | Array with `priority` | `['listener' => X::class, 'priority' => 100]` | Resolved via `PrioritizedListenerProvider` |
 | Callable | `fn(Event $e) => ...` | Attached directly |
 
-A class-string resolves through the container only when the container has it; otherwise a callable string is attached as-is, and an entry that is neither is skipped.
+Every string entry is a container service id resolved lazily through the container; a string is never treated as a callable. An id the container does not have — as well as an array spec with no `listener` key — throws `InvalidListenerConfigurationException` (a `ContainerExceptionInterface`) while the listener provider is built, rather than being skipped silently.
 
 ## Middleware
 

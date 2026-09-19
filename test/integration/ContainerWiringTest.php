@@ -27,6 +27,7 @@ use Psr\EventDispatcher\ListenerProviderInterface;
 use Webware\Event\ConfigProvider;
 use Webware\Event\Container\ListenerProviderAggregateFactory;
 use Webware\Event\Event;
+use Webware\Event\Exception\InvalidListenerConfigurationException;
 use WebwareTestIntegration\Event\Asset\RecordingListener;
 use WebwareTestIntegration\Event\Asset\RecordingListenerProvider;
 
@@ -35,7 +36,10 @@ use WebwareTestIntegration\Event\Asset\RecordingListenerProvider;
  * aggregated with phly's, which is what supplies the dispatcher — then uses the
  * documented config keys for real.
  */
+#[CoversClass(InvalidListenerConfigurationException::class)]
 #[CoversClass(ListenerProviderAggregateFactory::class)]
+#[CoversMethod(InvalidListenerConfigurationException::class, 'forInvalidEntry')]
+#[CoversMethod(InvalidListenerConfigurationException::class, 'forUnresolvableService')]
 #[CoversMethod(ListenerProviderAggregateFactory::class, '__invoke')]
 final class ContainerWiringTest extends TestCase
 {
@@ -56,6 +60,17 @@ final class ContainerWiringTest extends TestCase
         $container->get(EventDispatcherInterface::class)->dispatch(new Event());
 
         static::assertCount(1, $handled);
+    }
+
+    #[Test]
+    public function callableStringIsNotAcceptedAsAListener(): void
+    {
+        $container = $this->createContainer(listeners: [Event::class => ['strtolower']]);
+
+        $this->expectException(InvalidListenerConfigurationException::class);
+        $this->expectExceptionMessage('Listener service "strtolower" is not registered in the container.');
+
+        $container->get(EventDispatcherInterface::class);
     }
 
     #[Test]
@@ -96,6 +111,17 @@ final class ContainerWiringTest extends TestCase
 
         static::assertSame([Event::class], $listener->handled);
         static::assertCount(2, $handled);
+    }
+
+    #[Test]
+    public function invalidListenerEntryTypeIsRejected(): void
+    {
+        $container = $this->createContainer(listeners: [Event::class => [['priority' => 5]]]);
+
+        $this->expectException(InvalidListenerConfigurationException::class);
+        $this->expectExceptionMessage('A listener entry must be a container service id or a callable; received null.');
+
+        $container->get(EventDispatcherInterface::class);
     }
 
     #[Test]
@@ -166,22 +192,21 @@ final class ContainerWiringTest extends TestCase
     }
 
     #[Test]
-    public function unresolvableListenerIsSkippedWithoutLosingLaterListeners(): void
+    public function unregisteredListenerServiceIsRejected(): void
     {
-        $listener  = new RecordingListener();
-        $container = $this->createContainer(
-            listeners: [Event::class => ['not-a-callable-string', 'not.registered.Service', RecordingListener::class]],
-            services: [RecordingListener::class => $listener],
+        $container = $this->createContainer(listeners: [Event::class => ['not.registered.Service']]);
+
+        $this->expectException(InvalidListenerConfigurationException::class);
+        $this->expectExceptionMessage(
+            'Listener service "not.registered.Service" is not registered in the container.',
         );
 
-        $container->get(EventDispatcherInterface::class)->dispatch(new Event());
-
-        static::assertSame([Event::class], $listener->handled);
+        $container->get(EventDispatcherInterface::class);
     }
 
     /**
-     * @param array<class-string, array<int, callable|string|array{listener: callable|string, priority?: int}>> $listeners
-     * @param list<class-string>                                                                                 $listenerProviders
+     * @param array<class-string, array<int, array{listener?: callable|string, priority?: int}|callable|string>> $listeners
+     * @param list<class-string>                                                                                  $listenerProviders
      */
     private function createContainer(
         array $listeners = [],
