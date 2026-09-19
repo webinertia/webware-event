@@ -48,42 +48,11 @@ final class EventTest extends TestCase
         self::assertSame('test.event', $event->getName());
     }
 
-    public function testSetNameOverridesDefault(): void
+    public function testGetParamReturnsDefaultWhenMissing(): void
     {
         $event = new Event();
-        $event->setName('custom.event');
-        self::assertSame('custom.event', $event->getName());
-    }
-
-    public function testSetNameOverridesProvidedName(): void
-    {
-        $event = new Event('original.event');
-        $event->setName('updated.event');
-        self::assertSame('updated.event', $event->getName());
-    }
-
-    public function testGetTargetReturnsNullByDefault(): void
-    {
-        $event = new Event();
-        self::assertNull($event->getTarget());
-    }
-
-    public function testGetTargetReturnsProvidedTarget(): void
-    {
-        $target = new stdClass();
-        $event  = new Event(null, $target);
-        self::assertSame($target, $event->getTarget());
-    }
-
-    public function testSetTargetUpdatesTarget(): void
-    {
-        $target  = new stdClass();
-        $target2 = new stdClass();
-
-        $event = new Event(null, $target);
-        $event->setTarget($target2);
-
-        self::assertSame($target2, $event->getTarget());
+        self::assertNull($event->getParam('nonexistent'));
+        self::assertSame('fallback', $event->getParam('nonexistent', 'fallback'));
     }
 
     public function testGetParamsReturnsEmptyArrayByDefault(): void
@@ -99,18 +68,44 @@ final class EventTest extends TestCase
         self::assertSame($params, $event->getParams());
     }
 
+    public function testGetTargetReturnsNullByDefault(): void
+    {
+        $event = new Event();
+        self::assertNull($event->getTarget());
+    }
+
+    public function testGetTargetReturnsProvidedTarget(): void
+    {
+        $target = new stdClass();
+        $event  = new Event(null, $target);
+        self::assertSame($target, $event->getTarget());
+    }
+
+    public function testPropagationStoppedDefaultsToFalse(): void
+    {
+        $event = new Event();
+        self::assertFalse($event->isPropagationStopped());
+    }
+
+    public function testSetNameOverridesDefault(): void
+    {
+        $event = new Event();
+        $event->setName('custom.event');
+        self::assertSame('custom.event', $event->getName());
+    }
+
+    public function testSetNameOverridesProvidedName(): void
+    {
+        $event = new Event('original.event');
+        $event->setName('updated.event');
+        self::assertSame('updated.event', $event->getName());
+    }
+
     public function testSetParamAddsValue(): void
     {
         $event = new Event();
         $event->setParam('foo', 'bar');
         self::assertSame('bar', $event->getParam('foo'));
-    }
-
-    public function testGetParamReturnsDefaultWhenMissing(): void
-    {
-        $event = new Event();
-        self::assertNull($event->getParam('nonexistent'));
-        self::assertSame('fallback', $event->getParam('nonexistent', 'fallback'));
     }
 
     public function testSetParamsReplacesAllParams(): void
@@ -120,10 +115,15 @@ final class EventTest extends TestCase
         self::assertSame(['new' => 'params'], $event->getParams());
     }
 
-    public function testPropagationStoppedDefaultsToFalse(): void
+    public function testSetTargetUpdatesTarget(): void
     {
-        $event = new Event();
-        self::assertFalse($event->isPropagationStopped());
+        $target  = new stdClass();
+        $target2 = new stdClass();
+
+        $event = new Event(null, $target);
+        $event->setTarget($target2);
+
+        self::assertSame($target2, $event->getTarget());
     }
 
     public function testStopPropagation(): void

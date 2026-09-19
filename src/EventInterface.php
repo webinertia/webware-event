@@ -16,25 +16,25 @@ namespace Webware\Event;
 
 interface EventInterface
 {
-    public function setName(string $name): void;
-
     public function getName(): string;
+
+    public function getParam(string $name, mixed $default = null): mixed;
+
+    /**
+     * @return array<array-key, mixed>
+     */
+    public function getParams(): array;
 
     public function getTarget(): ?object;
 
-    public function setTarget(object $target): void;
+    public function setName(string $name): void;
 
     public function setParam(string $name, mixed $value): void;
-
-    public function getParam(string $name, mixed $default = null): mixed;
 
     /**
      * @param array<array-key, mixed> $params
      */
     public function setParams(array $params): void;
 
-    /**
-     * @return array<array-key, mixed>
-     */
-    public function getParams(): array;
+    public function setTarget(object $target): void;
 }

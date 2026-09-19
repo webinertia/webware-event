@@ -38,29 +38,6 @@ use WebwareTestIntegration\Event\Asset\RecordingListenerProvider;
 #[CoversMethod(ListenerProviderAggregateFactory::class, '__invoke')]
 final class ContainerWiringTest extends TestCase
 {
-    /**
-     * @param array<class-string, array<int, callable|string|array{listener: callable|string, priority?: int}>> $listeners
-     * @param list<class-string>                                                                                 $listenerProviders
-     */
-    private function createContainer(array $listeners = [], array $listenerProviders = [], array $services = []): ServiceManager
-    {
-        $webware   = new ConfigProvider();
-        $dispatcher = new DispatcherConfigProvider();
-        $deps      = $webware->getDependencies();
-        $phlyDeps  = $dispatcher->getDependencies();
-
-        $config                                 = ($webware)();
-        $config[ConfigProvider::LISTENER_KEY]   = $listeners;
-        $config[ConfigProvider::LISTENER_PROVIDER_KEY] = $listenerProviders;
-
-        return new ServiceManager([
-            'aliases'    => $deps['aliases'],
-            'factories'  => $deps['factories'] + $phlyDeps['factories'],
-            'invokables' => $phlyDeps['invokables'],
-            'services'   => ['config' => $config] + $services,
-        ]);
-    }
-
     public function testDispatcherResolvesToPhlyDispatcher(): void
     {
         $container = $this->createContainer();
@@ -111,5 +88,31 @@ final class ContainerWiringTest extends TestCase
         $container->get(EventDispatcherInterface::class)->dispatch(new Event());
 
         self::assertSame([Event::class], $provider->handled);
+    }
+
+    /**
+     * @param array<class-string, array<int, callable|string|array{listener: callable|string, priority?: int}>> $listeners
+     * @param list<class-string>                                                                                 $listenerProviders
+     */
+    private function createContainer(
+        array $listeners = [],
+        array $listenerProviders = [],
+        array $services = [],
+    ): ServiceManager {
+        $webware    = new ConfigProvider();
+        $dispatcher = new DispatcherConfigProvider();
+        $deps       = $webware->getDependencies();
+        $phlyDeps   = $dispatcher->getDependencies();
+
+        $config                                        = $webware();
+        $config[ConfigProvider::LISTENER_KEY]          = $listeners;
+        $config[ConfigProvider::LISTENER_PROVIDER_KEY] = $listenerProviders;
+
+        return new ServiceManager([
+            'aliases'    => $deps['aliases'],
+            'factories'  => $deps['factories'] + $phlyDeps['factories'],
+            'invokables' => $phlyDeps['invokables'],
+            'services'   => ['config' => $config] + $services,
+        ]);
     }
 }

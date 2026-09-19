@@ -18,7 +18,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 
 interface EventDispatcherAwareInterface
 {
-    public function setEventDispatcher(EventDispatcherInterface $eventDispatcher): void;
-
     public function getEventDispatcher(): EventDispatcherInterface;
+
+    public function setEventDispatcher(EventDispatcherInterface $eventDispatcher): void;
 }

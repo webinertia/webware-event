@@ -21,14 +21,14 @@ trait EventPropagationTrait
     protected bool $propagationStopped = false;
 
     #[Override]
-    public function stopPropagation(bool $flag = true): void
-    {
-        $this->propagationStopped = $flag;
-    }
-
-    #[Override]
     public function isPropagationStopped(): bool
     {
         return $this->propagationStopped;
+    }
+
+    #[Override]
+    public function stopPropagation(bool $flag = true): void
+    {
+        $this->propagationStopped = $flag;
     }
 }

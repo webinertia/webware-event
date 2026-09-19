@@ -16,7 +16,7 @@ namespace Webware\Event;
 
 interface EventPropagationInterface
 {
-    public function stopPropagation(bool $flag = true): void;
-
     public function isPropagationStopped(): bool;
+
+    public function stopPropagation(bool $flag = true): void;
 }

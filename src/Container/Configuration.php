@@ -27,29 +27,20 @@ final readonly class Configuration extends Config
 {
     public const string CONFIG_KEY = EventDispatcherInterface::class;
 
+    public static function getAttachableListenerProvider(ContainerInterface $container): AttachableListenerProvider
+    {
+        $provider = $container->get(AttachableListenerProvider::class);
+        Assert::isInstanceOf($provider, AttachableListenerProvider::class);
+
+        return $provider;
+    }
+
     public static function getEventDispatcher(ContainerInterface $container): EventDispatcherInterface
     {
         $dispatcher = $container->get(EventDispatcherInterface::class);
         Assert::isInstanceOf($dispatcher, EventDispatcherInterface::class);
 
         return $dispatcher;
-    }
-
-    /**
-     * @return array<class-string, array<int, array{listener: callable|class-string, priority?: int}|class-string>>
-     */
-    public static function getListeners(ContainerInterface $container, string $callingFactory): array
-    {
-        if (! $container->has('config')) {
-            throw ContainerException::forMissingConfigService('config', static::class);
-        }
-        $config = $container->get('config');
-        Assert::isArray($config);
-
-        /** @var array<class-string, array<int, array{listener: callable|class-string, priority?: int}|class-string>> $listeners */
-        $listeners = $config[ConfigProvider::LISTENER_KEY] ?? [];
-
-        return $listeners;
     }
 
     /**
@@ -69,18 +60,27 @@ final readonly class Configuration extends Config
         return $providers;
     }
 
+    /**
+     * @return array<class-string, array<int, array{listener: callable|class-string, priority?: int}|class-string>>
+     */
+    public static function getListeners(ContainerInterface $container, string $callingFactory): array
+    {
+        if (! $container->has('config')) {
+            throw ContainerException::forMissingConfigService('config', static::class);
+        }
+        $config = $container->get('config');
+        Assert::isArray($config);
+
+        /** @var array<class-string, array<int, array{listener: callable|class-string, priority?: int}|class-string>> $listeners */
+        $listeners = $config[ConfigProvider::LISTENER_KEY] ?? [];
+
+        return $listeners;
+    }
+
     public static function getPrioritizedListenerProvider(ContainerInterface $container): PrioritizedListenerProvider
     {
         $provider = $container->get(PrioritizedListenerProvider::class);
         Assert::isInstanceOf($provider, PrioritizedListenerProvider::class);
-
-        return $provider;
-    }
-
-    public static function getAttachableListenerProvider(ContainerInterface $container): AttachableListenerProvider
-    {
-        $provider = $container->get(AttachableListenerProvider::class);
-        Assert::isInstanceOf($provider, AttachableListenerProvider::class);
 
         return $provider;
     }

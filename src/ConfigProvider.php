@@ -26,22 +26,6 @@ final readonly class ConfigProvider
     public const LISTENER_PROVIDER_KEY = 'listener_providers';
 
     /**
-     * @return array{
-     *     dependencies: array{aliases: array<class-string, class-string>, factories: array<class-string, class-string>},
-     *     listeners: array<class-string, array<int, array{listener: callable|class-string, priority?: int}|class-string>>,
-     *     listener_providers: class-string[],
-     * }
-     */
-    public function __invoke(): array
-    {
-        return [
-            'dependencies'              => $this->getDependencies(),
-            self::LISTENER_KEY          => [],
-            self::LISTENER_PROVIDER_KEY => [],
-        ];
-    }
-
-    /**
      * @return array{aliases: array<class-string, class-string>, factories: array<class-string, class-string>}
      */
     public function getDependencies(): array
@@ -55,6 +39,22 @@ final readonly class ConfigProvider
                 ListenerProviderAggregate::class                 => Container\ListenerProviderAggregateFactory::class,
                 Http\Middleware\EventDispatcherMiddleware::class => Http\Middleware\Container\EventDispatcherMiddlewareFactory::class,
             ],
+        ];
+    }
+
+    /**
+     * @return array{
+     *     dependencies: array{aliases: array<class-string, class-string>, factories: array<class-string, class-string>},
+     *     listeners: array<class-string, array<int, array{listener: callable|class-string, priority?: int}|class-string>>,
+     *     listener_providers: class-string[],
+     * }
+     */
+    public function __invoke(): array
+    {
+        return [
+            'dependencies'              => $this->getDependencies(),
+            self::LISTENER_KEY          => [],
+            self::LISTENER_PROVIDER_KEY => [],
         ];
     }
 }

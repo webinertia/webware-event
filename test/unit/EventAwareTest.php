@@ -26,6 +26,11 @@ use Webware\Event\EventAwareTrait;
 #[CoversMethod(EventAwareTrait::class, 'setEvent')]
 final class EventAwareTest extends TestCase
 {
+    public function testGetEventIsNullBeforeAnEventIsSet(): void
+    {
+        self::assertNull($this->createSubject()->getEvent());
+    }
+
     /**
      * The pairing is the assertion: a class declaring the interface and using
      * the trait did not compile while the interface declared a non-nullable
@@ -36,11 +41,6 @@ final class EventAwareTest extends TestCase
         $subject = $this->createSubject();
 
         self::assertInstanceOf(EventAwareInterface::class, $subject);
-    }
-
-    public function testGetEventIsNullBeforeAnEventIsSet(): void
-    {
-        self::assertNull($this->createSubject()->getEvent());
     }
 
     public function testSetEventMakesItAvailable(): void

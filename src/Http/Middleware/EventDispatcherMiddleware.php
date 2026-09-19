@@ -31,8 +31,8 @@ final readonly class EventDispatcherMiddleware implements MiddlewareInterface
         return $handler->handle(
             $request->withAttribute(
                 EventDispatcherInterface::class,
-                $this->eventDispatcher
-            )
+                $this->eventDispatcher,
+            ),
         );
     }
 }

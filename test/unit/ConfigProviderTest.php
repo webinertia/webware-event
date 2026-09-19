@@ -33,28 +33,6 @@ final class ConfigProviderTest extends TestCase
 {
     private ConfigProvider $provider;
 
-    protected function setUp(): void
-    {
-        $this->provider = new ConfigProvider();
-    }
-
-    public function testInvokeReturnsExpectedKeys(): void
-    {
-        $config = ($this->provider)();
-
-        self::assertArrayHasKey('dependencies', $config);
-        self::assertArrayHasKey(ConfigProvider::LISTENER_KEY, $config);
-        self::assertArrayHasKey(ConfigProvider::LISTENER_PROVIDER_KEY, $config);
-    }
-
-    public function testInvokeReturnsEmptyListenersAndProvidersByDefault(): void
-    {
-        $config = ($this->provider)();
-
-        self::assertSame([], $config[ConfigProvider::LISTENER_KEY]);
-        self::assertSame([], $config[ConfigProvider::LISTENER_PROVIDER_KEY]);
-    }
-
     public function testGetDependenciesReturnsCorrectAliases(): void
     {
         $deps = $this->provider->getDependencies();
@@ -77,5 +55,27 @@ final class ConfigProviderTest extends TestCase
             EventDispatcherMiddlewareFactory::class,
             $deps['factories'][EventDispatcherMiddleware::class],
         );
+    }
+
+    public function testInvokeReturnsEmptyListenersAndProvidersByDefault(): void
+    {
+        $config = ($this->provider)();
+
+        self::assertSame([], $config[ConfigProvider::LISTENER_KEY]);
+        self::assertSame([], $config[ConfigProvider::LISTENER_PROVIDER_KEY]);
+    }
+
+    public function testInvokeReturnsExpectedKeys(): void
+    {
+        $config = ($this->provider)();
+
+        self::assertArrayHasKey('dependencies', $config);
+        self::assertArrayHasKey(ConfigProvider::LISTENER_KEY, $config);
+        self::assertArrayHasKey(ConfigProvider::LISTENER_PROVIDER_KEY, $config);
+    }
+
+    protected function setUp(): void
+    {
+        $this->provider = new ConfigProvider();
     }
 }

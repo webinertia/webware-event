@@ -1,0 +1,16 @@
+extends = "vendor/webware/webware-tools/mago.toml"
+php-version = "8.4.1"
+
+[linter]
+baseline = "lint-baseline.toml"
+
+[analyzer]
+baseline = "analysis-baseline.toml"
+
+# Guard rules live in the centre: vendor/webware/webware-tools/mago.toml.
+# Re-add a rule here only if it covers this package's own domain and the
+# centre does not cover it.
+
+[source]
+paths = ["src", "test"]
+includes = ["vendor"]
