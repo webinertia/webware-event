@@ -25,7 +25,16 @@ namespace Webware\Event;
  */
 interface EventAwareInterface
 {
-    public function getEvent(): EventInterface;
+    /**
+     * The event that triggered this object, or null before one is set.
+     *
+     * Nullable because `EventAwareTrait` initialises the property to null, so
+     * null is reachable until `setEvent()` is called. Declaring this
+     * non-nullable made the interface and its own trait mutually unusable:
+     * a trait method returning `?EventInterface` widens the declared return
+     * type, which is a PHP fatal error when a class combines the two.
+     */
+    public function getEvent(): ?EventInterface;
 
     public function setEvent(EventInterface $event): void;
 }
