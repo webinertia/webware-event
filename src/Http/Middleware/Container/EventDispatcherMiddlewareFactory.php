@@ -12,10 +12,11 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Webware\Event\Middleware;
+namespace Webware\Event\Http\Middleware\Container;
 
 use Psr\Container\ContainerInterface;
 use Webware\Event\Container\Configuration as Config;
+use Webware\Event\Http\Middleware\EventDispatcherMiddleware;
 
 final class EventDispatcherMiddlewareFactory
 {
