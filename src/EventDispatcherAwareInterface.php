@@ -16,6 +16,9 @@ namespace Webware\Event;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
 
+/**
+ * @api
+ */
 interface EventDispatcherAwareInterface
 {
     public function getEventDispatcher(): EventDispatcherInterface;

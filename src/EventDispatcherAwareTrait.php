@@ -18,7 +18,12 @@ use Override;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
 /**
- * @phpstan-ignore trait.unused
+ * Requires any class using this trait to also implement the paired
+ * {@see EventDispatcherAwareInterface} — mago reports `missing-required-interface` otherwise.
+ *
+ * @api
+ *
+ * @require-implements EventDispatcherAwareInterface
  */
 trait EventDispatcherAwareTrait
 {

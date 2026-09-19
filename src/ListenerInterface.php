@@ -25,6 +25,8 @@ namespace Webware\Event;
  *
  * This is the webware listener contract, not a PSR-14 type: PSR-14 defines no
  * listener interface, only `ListenerProviderInterface` returning callables.
+ *
+ * @api
  */
 interface ListenerInterface
 {

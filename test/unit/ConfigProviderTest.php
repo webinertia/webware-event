@@ -18,6 +18,7 @@ use Phly\EventDispatcher\EventDispatcher;
 use Phly\EventDispatcher\ListenerProvider\ListenerProviderAggregate;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\EventDispatcher\ListenerProviderInterface;
@@ -33,45 +34,49 @@ final class ConfigProviderTest extends TestCase
 {
     private ConfigProvider $provider;
 
-    public function testGetDependenciesReturnsCorrectAliases(): void
+    #[Test]
+    public function getDependenciesReturnsCorrectAliases(): void
     {
         $deps = $this->provider->getDependencies();
 
-        self::assertArrayHasKey('aliases', $deps);
-        self::assertSame(EventDispatcher::class, $deps['aliases'][EventDispatcherInterface::class]);
-        self::assertSame(ListenerProviderAggregate::class, $deps['aliases'][ListenerProviderInterface::class]);
+        static::assertArrayHasKey('aliases', $deps);
+        static::assertSame(EventDispatcher::class, $deps['aliases'][EventDispatcherInterface::class]);
+        static::assertSame(ListenerProviderAggregate::class, $deps['aliases'][ListenerProviderInterface::class]);
     }
 
-    public function testGetDependenciesReturnsCorrectFactories(): void
+    #[Test]
+    public function getDependenciesReturnsCorrectFactories(): void
     {
         $deps = $this->provider->getDependencies();
 
-        self::assertArrayHasKey('factories', $deps);
-        self::assertSame(
+        static::assertArrayHasKey('factories', $deps);
+        static::assertSame(
             ListenerProviderAggregateFactory::class,
             $deps['factories'][ListenerProviderAggregate::class],
         );
-        self::assertSame(
+        static::assertSame(
             EventDispatcherMiddlewareFactory::class,
             $deps['factories'][EventDispatcherMiddleware::class],
         );
     }
 
-    public function testInvokeReturnsEmptyListenersAndProvidersByDefault(): void
+    #[Test]
+    public function invokeReturnsEmptyListenersAndProvidersByDefault(): void
     {
         $config = ($this->provider)();
 
-        self::assertSame([], $config[ConfigProvider::LISTENER_KEY]);
-        self::assertSame([], $config[ConfigProvider::LISTENER_PROVIDER_KEY]);
+        static::assertSame([], $config[ConfigProvider::LISTENER_KEY]);
+        static::assertSame([], $config[ConfigProvider::LISTENER_PROVIDER_KEY]);
     }
 
-    public function testInvokeReturnsExpectedKeys(): void
+    #[Test]
+    public function invokeReturnsExpectedKeys(): void
     {
         $config = ($this->provider)();
 
-        self::assertArrayHasKey('dependencies', $config);
-        self::assertArrayHasKey(ConfigProvider::LISTENER_KEY, $config);
-        self::assertArrayHasKey(ConfigProvider::LISTENER_PROVIDER_KEY, $config);
+        static::assertArrayHasKey('dependencies', $config);
+        static::assertArrayHasKey(ConfigProvider::LISTENER_KEY, $config);
+        static::assertArrayHasKey(ConfigProvider::LISTENER_PROVIDER_KEY, $config);
     }
 
     protected function setUp(): void

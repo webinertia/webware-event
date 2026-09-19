@@ -16,6 +16,12 @@ namespace Webware\Event;
 
 use Override;
 
+/**
+ * Base event for the package — `@api` is the extension point consumers
+ * subclass, which is why this class is deliberately not `final`.
+ *
+ * @api
+ */
 class Event implements EventInterface, EventPropagationInterface
 {
     use EventPropagationTrait;

@@ -17,7 +17,12 @@ namespace Webware\Event;
 use Override;
 
 /**
- * @phpstan-ignore trait.unused
+ * Requires any class using this trait to also implement the paired
+ * {@see EventAwareInterface} — mago reports `missing-required-interface` otherwise.
+ *
+ * @api
+ *
+ * @require-implements EventAwareInterface
  */
 trait EventAwareTrait
 {

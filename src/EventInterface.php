@@ -14,6 +14,9 @@ declare(strict_types=1);
 
 namespace Webware\Event;
 
+/**
+ * @api
+ */
 interface EventInterface
 {
     public function getName(): string;

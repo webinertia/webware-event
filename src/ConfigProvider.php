@@ -19,11 +19,18 @@ use Phly\EventDispatcher\ListenerProvider\ListenerProviderAggregate;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\EventDispatcher\ListenerProviderInterface;
 
+/**
+ * @type ConfigShape = array{
+ *     listeners: array<class-string, array<int, array{listener?: callable|string, priority?: int}|callable|string>>,
+ *     listener_providers: list<class-string>,
+ *     ...<string, mixed>,
+ * }
+ */
 final readonly class ConfigProvider
 {
-    public const LISTENER_KEY = 'listeners';
+    public const string LISTENER_KEY = 'listeners';
 
-    public const LISTENER_PROVIDER_KEY = 'listener_providers';
+    public const string LISTENER_PROVIDER_KEY = 'listener_providers';
 
     /**
      * @return array{aliases: array<class-string, class-string>, factories: array<class-string, class-string>}
@@ -43,11 +50,7 @@ final readonly class ConfigProvider
     }
 
     /**
-     * @return array{
-     *     dependencies: array{aliases: array<class-string, class-string>, factories: array<class-string, class-string>},
-     *     listeners: array<class-string, array<int, array{listener: callable|class-string, priority?: int}|class-string>>,
-     *     listener_providers: class-string[],
-     * }
+     * @return ConfigShape
      */
     public function __invoke(): array
     {

@@ -14,22 +14,28 @@ declare(strict_types=1);
 
 namespace Webware\Event\Container;
 
+use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
+use Psr\Container\NotFoundExceptionInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Webware\Event\EventDispatcherAwareInterface;
 
 final class EventDispatcherAwareDelegator
 {
     /**
      * @param callable(): object $callback
+     *
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function __invoke(
         ContainerInterface $container,
-        string $requestedName,
+        string $_requestedName,
         callable $callback,
     ): object {
         $serviceInstance = $callback();
         if ($serviceInstance instanceof EventDispatcherAwareInterface) {
-            $eventDispatcher = Configuration::getEventDispatcher($container);
+            $eventDispatcher = $container->get(EventDispatcherInterface::class);
             $serviceInstance->setEventDispatcher($eventDispatcher);
         }
 
