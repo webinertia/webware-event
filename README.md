@@ -1,8 +1,11 @@
 # webware/webware-event
 
-[![PHP Version](https://img.shields.io/badge/php-~8.4%20%7C%7C%20~8.5-blue)](https://www.php.net/)
-[![PHPStan](https://img.shields.io/badge/PHPStan-level%2010-brightgreen)](phpstan.neon.dist)
-[![License](https://img.shields.io/badge/license-BSD--3--Clause-green)](LICENSE)
+[![PHP Version](https://img.shields.io/packagist/php-v/webware/webware-event)](https://packagist.org/packages/webware/webware-event)
+[![Latest Version](https://img.shields.io/packagist/v/webware/webware-event)](https://packagist.org/packages/webware/webware-event)
+[![License](https://img.shields.io/github/license/webinertia/webware-event)](LICENSE)
+[![Continuous Integration](https://github.com/webinertia/webware-event/actions/workflows/continuous-integration.yml/badge.svg)](https://github.com/webinertia/webware-event/actions/workflows/continuous-integration.yml)
+[![codecov](https://codecov.io/gh/webinertia/webware-event/graph/badge.svg)](https://codecov.io/gh/webinertia/webware-event)
+[![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fwebinertia%2Fwebware-event%2F1.0.x)](https://dashboard.stryker-mutator.io/reports/github.com/webinertia/webware-event/1.0.x)
 
 PSR-14 event system for the Mezzio framework — declarative listener wiring, delegator-based dispatcher injection, and PSR-15 middleware integration.
 
