@@ -1,8 +1,11 @@
 # webware/webware-event
 
-[![PHP Version](https://img.shields.io/badge/php-~8.4%20%7C%7C%20~8.5-blue)](https://www.php.net/)
-[![PHPStan](https://img.shields.io/badge/PHPStan-level%2010-brightgreen)](phpstan.neon.dist)
-[![License](https://img.shields.io/badge/license-BSD--3--Clause-green)](LICENSE)
+[![PHP Version](https://img.shields.io/packagist/php-v/webware/webware-event)](https://packagist.org/packages/webware/webware-event)
+[![Latest Version](https://img.shields.io/packagist/v/webware/webware-event)](https://packagist.org/packages/webware/webware-event)
+[![License](https://img.shields.io/github/license/webinertia/webware-event)](LICENSE)
+[![Continuous Integration](https://github.com/webinertia/webware-event/actions/workflows/continuous-integration.yml/badge.svg)](https://github.com/webinertia/webware-event/actions/workflows/continuous-integration.yml)
+[![codecov](https://codecov.io/gh/webinertia/webware-event/graph/badge.svg)](https://codecov.io/gh/webinertia/webware-event)
+[![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fwebinertia%2Fwebware-event%2F1.0.x)](https://dashboard.stryker-mutator.io/reports/github.com/webinertia/webware-event/1.0.x)
 
 PSR-14 event system for the Mezzio framework — declarative listener wiring, delegator-based dispatcher injection, and PSR-15 middleware integration.
 
@@ -103,7 +106,7 @@ The `EventDispatcherMiddleware` attaches the dispatcher as a request attribute. 
 | Array with `priority` | `['listener' => X::class, 'priority' => 100]` | Resolved via `PrioritizedListenerProvider` |
 | Callable | `fn(Event $e) => ...` | Attached directly |
 
-Allows an object to carry an event instance. Intended for listeners that need access to the event they're processing.
+A class-string resolves through the container only when the container has it; otherwise a callable string is attached as-is, and an entry that is neither is skipped.
 
 ## Middleware
 
@@ -137,24 +140,37 @@ ConfigProvider ──▶ container wiring (aliases, factories, listeners)
 | Class | Namespace | Role |
 | --- | --- | --- |
 | `Event` | `Webware\Event` | Concrete event with name, target, params, and propagation control |
-| `ConfigProvider` | `Webware\Event` | Dependency wiring and default config |
-| `Configuration` | `Webware\Event\Container` | Typed, validated config extraction from the container |
+| `ConfigProvider` | `Webware\Event` | Dependency wiring, default config, and the `ConfigShape` type alias |
 | `ListenerProviderAggregateFactory` | `Webware\Event\Container` | Builds the listener aggregate from config |
 | `EventDispatcherAwareDelegator` | `Webware\Event\Container` | Injects the dispatcher into aware services |
 | `EventDispatcherMiddleware` | `Webware\Event\Http\Middleware` | PSR-15 middleware for request-scoped dispatch |
-| `EventAwareInterface` / `EventAwareTrait` | `Webware\Event` | Pattern for event-carrying objects |
+| `EventAwareInterface` / `EventAwareTrait` | `Webware\Event` | Pattern for event-carrying objects: an object can carry the event it is processing |
 | `EventDispatcherAwareInterface` / `EventDispatcherAwareTrait` | `Webware\Event` | Pattern for event-dispatching services |
 | `EventInterface` | `Webware\Event` | Contract an event satisfies; `Event` implements it |
 | `ListenerInterface` | `Webware\Event` | Contract a listener satisfies (`__invoke(EventInterface $event): void`) |
 | `EventPropagationInterface` / `EventPropagationTrait` | `Webware\Event` | Pattern for stoppable propagation |
 
+Config arrays are typed by the `@type ConfigShape` alias declared on `Webware\Event\ConfigProvider` —
+consumers `@import-type ConfigShape from ConfigProvider` and read the keys directly, rather than going
+through an accessor class. The traits declare `@require-implements`, so mago reports a class that uses a
+trait without also implementing its interface.
+
 ## Development
 
 ```bash
-composer check-all    # Run coding standards, static analysis, and tests
-composer cs-fix       # Auto-fix coding standard violations
-composer sa           # PHPStan level 10 static analysis
-composer test         # PHPUnit test suite
+composer test              # unit suite
+composer test-integration  # integration suite (in-process ServiceManager wiring)
+composer test-coverage     # unit suite with clover + HTML coverage
+composer mutation-test     # Infection, with Mago as staticAnalysisTool
+composer test-all          # test + test-integration + mutation-test
+```
+
+Every command also runs in the tooling container, which needs no native PHP toolchain:
+
+```bash
+docker compose up -d
+docker compose exec tooling composer test
+docker compose exec tooling mago format --check
 ```
 
 ## License

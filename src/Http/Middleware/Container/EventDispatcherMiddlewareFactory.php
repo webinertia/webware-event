@@ -14,16 +14,24 @@ declare(strict_types=1);
 
 namespace Webware\Event\Http\Middleware\Container;
 
+use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
-use Webware\Event\Container\Configuration as Config;
+use Psr\Container\NotFoundExceptionInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Webware\Event\Http\Middleware\EventDispatcherMiddleware;
 
 final class EventDispatcherMiddlewareFactory
 {
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
     public function __invoke(ContainerInterface $container): EventDispatcherMiddleware
     {
+        $eventDispatcher = $container->get(EventDispatcherInterface::class);
+
         return new EventDispatcherMiddleware(
-            eventDispatcher: Config::getEventDispatcher($container),
+            eventDispatcher: $eventDispatcher,
         );
     }
 }

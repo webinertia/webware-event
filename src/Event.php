@@ -16,6 +16,12 @@ namespace Webware\Event;
 
 use Override;
 
+/**
+ * Base event for the package — `@api` is the extension point consumers
+ * subclass, which is why this class is deliberately not `final`.
+ *
+ * @api
+ */
 class Event implements EventInterface, EventPropagationInterface
 {
     use EventPropagationTrait;
@@ -30,21 +36,21 @@ class Event implements EventInterface, EventPropagationInterface
     ) {}
 
     #[Override]
-    public function setName(string $name): void
-    {
-        $this->name = $name;
-    }
-
-    #[Override]
     public function getName(): string
     {
         return $this->name ?? static::class;
     }
 
     #[Override]
-    public function setTarget(object $target): void
+    public function getParam(string $name, mixed $default = null): mixed
     {
-        $this->target = $target;
+        return $this->params[$name] ?? $default;
+    }
+
+    #[Override]
+    public function getParams(): array
+    {
+        return $this->params;
     }
 
     #[Override]
@@ -54,15 +60,15 @@ class Event implements EventInterface, EventPropagationInterface
     }
 
     #[Override]
-    public function setParam(string $name, mixed $value): void
+    public function setName(string $name): void
     {
-        $this->params[$name] = $value;
+        $this->name = $name;
     }
 
     #[Override]
-    public function getParam(string $name, mixed $default = null): mixed
+    public function setParam(string $name, mixed $value): void
     {
-        return $this->params[$name] ?? $default;
+        $this->params[$name] = $value;
     }
 
     /**
@@ -75,8 +81,8 @@ class Event implements EventInterface, EventPropagationInterface
     }
 
     #[Override]
-    public function getParams(): array
+    public function setTarget(object $target): void
     {
-        return $this->params;
+        $this->target = $target;
     }
 }

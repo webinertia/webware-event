@@ -18,21 +18,26 @@ use Override;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
 /**
- * @phpstan-ignore trait.unused
+ * Requires any class using this trait to also implement the paired
+ * {@see EventDispatcherAwareInterface} — mago reports `missing-required-interface` otherwise.
+ *
+ * @api
+ *
+ * @require-implements EventDispatcherAwareInterface
  */
 trait EventDispatcherAwareTrait
 {
     protected EventDispatcherInterface $eventDispatcher;
 
     #[Override]
-    public function setEventDispatcher(EventDispatcherInterface $eventDispatcher): void
-    {
-        $this->eventDispatcher = $eventDispatcher;
-    }
-
-    #[Override]
     public function getEventDispatcher(): EventDispatcherInterface
     {
         return $this->eventDispatcher;
+    }
+
+    #[Override]
+    public function setEventDispatcher(EventDispatcherInterface $eventDispatcher): void
+    {
+        $this->eventDispatcher = $eventDispatcher;
     }
 }

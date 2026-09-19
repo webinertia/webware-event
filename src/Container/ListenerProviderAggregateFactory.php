@@ -15,9 +15,14 @@ declare(strict_types=1);
 namespace Webware\Event\Container;
 
 use Phly\EventDispatcher\LazyListener;
+use Phly\EventDispatcher\ListenerProvider\AttachableListenerProvider;
 use Phly\EventDispatcher\ListenerProvider\ListenerProviderAggregate;
+use Phly\EventDispatcher\ListenerProvider\PrioritizedListenerProvider;
+use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Psr\EventDispatcher\ListenerProviderInterface;
+use Webware\Event\ConfigProvider;
 
 use function is_array;
 use function is_callable;
@@ -25,52 +30,84 @@ use function is_string;
 
 /**
  * @internal
+ *
+ * @import-type ConfigShape from ConfigProvider
  */
 final class ListenerProviderAggregateFactory
 {
+    /**
+     * Resolves a configured listener entry to a callable, deferring container lookups to `LazyListener`.
+     */
+    private function resolveListener(ContainerInterface $container, mixed $service): ?callable
+    {
+        if (is_string($service)) {
+            if ($container->has($service)) {
+                return new LazyListener($container, $service);
+            }
+        }
+
+        if (is_callable($service)) {
+            return $service;
+        }
+
+        return null;
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
     public function __invoke(ContainerInterface $container): ListenerProviderAggregate
     {
-        $listeners           = Configuration::getListeners($container, self::class);
-        $listenerProviders   = Configuration::getListenerProviders($container, self::class);
-        $prioritizedProvider = Configuration::getPrioritizedListenerProvider($container);
-        $attachableProvider  = Configuration::getAttachableListenerProvider($container);
-        $aggregate           = new ListenerProviderAggregate();
+        /** @var ConfigShape $config */
+        $config = $container->get('config');
+
+        $listeners         = $config[ConfigProvider::LISTENER_KEY];
+        $listenerProviders = $config[ConfigProvider::LISTENER_PROVIDER_KEY];
+
+        $prioritizedProvider = $container->get(PrioritizedListenerProvider::class);
+        $attachableProvider  = $container->get(AttachableListenerProvider::class);
+
+        $aggregate = new ListenerProviderAggregate();
 
         foreach ($listeners as $eventType => $spec) {
             foreach ($spec as $listener) {
-                if (is_string($listener)) {
-                    if ($container->has($listener)) {
-                        $attachableProvider->listen($eventType, new LazyListener($container, $listener));
-                    } elseif (is_callable($listener)) {
-                        $attachableProvider->listen($eventType, $listener);
+                if (! is_array($listener)) {
+                    $resolved = $this->resolveListener($container, $listener);
+
+                    if (null !== $resolved) {
+                        $attachableProvider->listen($eventType, $resolved);
                     }
 
                     continue;
                 }
 
-                if (is_array($listener) && isset($listener['listener'])) {
-                    $listenerService = $listener['listener'];
-                    if (is_string($listenerService) && $container->has($listenerService)) {
-                        $resolvedListener = new LazyListener($container, $listenerService);
-                    } elseif (is_callable($listenerService)) {
-                        $resolvedListener = $listenerService;
-                    } else {
-                        continue;
-                    }
+                $resolved = $this->resolveListener($container, $listener['listener'] ?? null);
 
-                    if (isset($listener['priority'])) {
-                        $prioritizedProvider->listen($eventType, $resolvedListener, $listener['priority']);
-                    } else {
-                        $attachableProvider->listen($eventType, $resolvedListener);
-                    }
+                if (null === $resolved) {
+                    continue;
+                }
+
+                $priority = $listener['priority'] ?? null;
+
+                if (null === $priority) {
+                    $attachableProvider->listen($eventType, $resolved);
 
                     continue;
                 }
+
+                $prioritizedProvider->listen($eventType, $resolved, $priority);
             }
         }
 
         foreach ($listenerProviders as $provider) {
-            $providerInstance = $container->has($provider) ? $container->get($provider) : null;
+            if (! $container->has($provider)) {
+                continue;
+            }
+
+            /** @var ListenerProviderInterface|null $providerInstance */
+            $providerInstance = $container->get($provider);
+
             if ($providerInstance instanceof ListenerProviderInterface) {
                 $aggregate->attach($providerInstance);
             }

@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace Webware\Event\Http\Middleware;
 
+use Override;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -26,13 +27,14 @@ final readonly class EventDispatcherMiddleware implements MiddlewareInterface
         private EventDispatcherInterface $eventDispatcher,
     ) {}
 
+    #[Override]
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         return $handler->handle(
             $request->withAttribute(
                 EventDispatcherInterface::class,
-                $this->eventDispatcher
-            )
+                $this->eventDispatcher,
+            ),
         );
     }
 }

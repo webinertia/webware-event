@@ -12,45 +12,46 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Webware\EventTest;
+namespace WebwareTest\Event;
 
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\CoversMethod;
+use PHPUnit\Framework\Attributes\CoversTrait;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Webware\Event\Event;
 use Webware\Event\EventAwareInterface;
 use Webware\Event\EventAwareTrait;
 
-#[CoversClass(EventAwareTrait::class)]
-#[CoversMethod(EventAwareTrait::class, 'getEvent')]
-#[CoversMethod(EventAwareTrait::class, 'setEvent')]
+#[CoversTrait(EventAwareTrait::class)]
 final class EventAwareTest extends TestCase
 {
+    #[Test]
+    public function getEventIsNullBeforeAnEventIsSet(): void
+    {
+        static::assertNull($this->createSubject()->getEvent());
+    }
+
     /**
      * The pairing is the assertion: a class declaring the interface and using
      * the trait did not compile while the interface declared a non-nullable
      * return, because the trait widens it to `?EventInterface`.
      */
-    public function testInterfaceAndTraitCanBeCombined(): void
+    #[Test]
+    public function interfaceAndTraitCanBeCombined(): void
     {
         $subject = $this->createSubject();
 
-        self::assertInstanceOf(EventAwareInterface::class, $subject);
+        static::assertInstanceOf(EventAwareInterface::class, $subject);
     }
 
-    public function testGetEventIsNullBeforeAnEventIsSet(): void
-    {
-        self::assertNull($this->createSubject()->getEvent());
-    }
-
-    public function testSetEventMakesItAvailable(): void
+    #[Test]
+    public function setEventMakesItAvailable(): void
     {
         $event   = new Event();
         $subject = $this->createSubject();
 
         $subject->setEvent($event);
 
-        self::assertSame($event, $subject->getEvent());
+        static::assertSame($event, $subject->getEvent());
     }
 
     private function createSubject(): EventAwareInterface
