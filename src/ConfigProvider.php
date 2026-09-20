@@ -21,7 +21,7 @@ use Psr\EventDispatcher\ListenerProviderInterface;
 
 /**
  * @type ConfigShape = array{
- *     listeners: array<class-string, array<int, array{listener?: callable|string, priority?: int}|callable|string>>,
+ *     listeners: array<class-string, array<int, array{listener: class-string<ListenerInterface>|callable, priority?: int}|class-string<ListenerInterface>|callable>>,
  *     listener_providers: list<class-string>,
  *     ...<string, mixed>,
  * }

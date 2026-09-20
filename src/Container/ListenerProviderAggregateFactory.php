@@ -23,6 +23,7 @@ use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Psr\EventDispatcher\ListenerProviderInterface;
 use Webware\Event\ConfigProvider;
+use Webware\Event\Exception\InvalidListenerConfigurationException;
 
 use function is_array;
 use function is_callable;
@@ -37,20 +38,29 @@ final class ListenerProviderAggregateFactory
 {
     /**
      * Resolves a configured listener entry to a callable, deferring container lookups to `LazyListener`.
+     *
+     * A string entry is a container service id, never a callable string: ids are class-strings naming the
+     * listener implementation. An id the container does not have is a configuration error rather than a
+     * listener to skip: skipping hides the typo until the event that should have been handled silently
+     * never happens.
+     *
+     * @throws InvalidListenerConfigurationException
      */
-    private function resolveListener(ContainerInterface $container, mixed $service): ?callable
+    private function resolveListener(ContainerInterface $container, mixed $service): callable
     {
         if (is_string($service)) {
             if ($container->has($service)) {
                 return new LazyListener($container, $service);
             }
+
+            throw InvalidListenerConfigurationException::forUnresolvableService($service);
         }
 
         if (is_callable($service)) {
             return $service;
         }
 
-        return null;
+        throw InvalidListenerConfigurationException::forInvalidEntry($service);
     }
 
     /**
@@ -73,20 +83,12 @@ final class ListenerProviderAggregateFactory
         foreach ($listeners as $eventType => $spec) {
             foreach ($spec as $listener) {
                 if (! is_array($listener)) {
-                    $resolved = $this->resolveListener($container, $listener);
-
-                    if (null !== $resolved) {
-                        $attachableProvider->listen($eventType, $resolved);
-                    }
+                    $attachableProvider->listen($eventType, $this->resolveListener($container, $listener));
 
                     continue;
                 }
 
                 $resolved = $this->resolveListener($container, $listener['listener'] ?? null);
-
-                if (null === $resolved) {
-                    continue;
-                }
 
                 $priority = $listener['priority'] ?? null;
 
