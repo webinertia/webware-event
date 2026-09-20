@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "363b25501088fbaa7b8eb5fc7bafbd4f",
+    "content-hash": "ac195b57924d59b7cb20e4b2ec243ab6",
     "packages": [
         {
             "name": "phly/phly-event-dispatcher",
@@ -9816,16 +9816,16 @@
         },
         {
             "name": "webware/webware-tools",
-            "version": "1.0.x-dev",
+            "version": "1.0.0-beta.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/webinertia/webware-tools.git",
-                "reference": "aef3f38bb67fde605669b50fb37442ea5b78bf9c"
+                "reference": "8c4deefee3e09ff30d2af3fde6250045134dfa4e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/webinertia/webware-tools/zipball/aef3f38bb67fde605669b50fb37442ea5b78bf9c",
-                "reference": "aef3f38bb67fde605669b50fb37442ea5b78bf9c",
+                "url": "https://api.github.com/repos/webinertia/webware-tools/zipball/8c4deefee3e09ff30d2af3fde6250045134dfa4e",
+                "reference": "8c4deefee3e09ff30d2af3fde6250045134dfa4e",
                 "shasum": ""
             },
             "require": {
@@ -9834,7 +9834,6 @@
             "require-dev": {
                 "roave/security-advisories": "dev-master"
             },
-            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -9860,16 +9859,15 @@
             ],
             "support": {
                 "issues": "https://github.com/webinertia/webware-tools/issues",
-                "source": "https://github.com/webinertia/webware-tools/tree/1.0.x"
+                "source": "https://github.com/webinertia/webware-tools/tree/1.0.0-beta.2"
             },
-            "time": "2026-09-19T00:39:45+00:00"
+            "time": "2026-09-20T01:24:50+00:00"
         }
     ],
     "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": {
-        "roave/security-advisories": 20,
-        "webware/webware-tools": 20
+        "roave/security-advisories": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,
