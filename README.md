@@ -7,7 +7,7 @@
 [![codecov](https://codecov.io/gh/webinertia/webware-event/graph/badge.svg)](https://codecov.io/gh/webinertia/webware-event)
 [![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fwebinertia%2Fwebware-event%2F1.0.x)](https://dashboard.stryker-mutator.io/reports/github.com/webinertia/webware-event/1.0.x)
 
-PSR-14 event system for the Mezzio framework — declarative listener wiring, delegator-based dispatcher injection, and PSR-15 middleware integration.
+PSR-14 event system for the Mezzio framework - declarative listener wiring, delegator-based dispatcher injection, and PSR-15 middleware integration.
 
 ## Installation
 
@@ -106,7 +106,7 @@ The `EventDispatcherMiddleware` attaches the dispatcher as a request attribute. 
 | Array with `priority` | `['listener' => X::class, 'priority' => 100]` | Resolved via `PrioritizedListenerProvider` |
 | Callable | `fn(Event $e) => ...` | Attached directly |
 
-Every string entry is a container service id resolved lazily through the container; a string is never treated as a callable. An id the container does not have — as well as an array spec with no `listener` key — throws `InvalidListenerConfigurationException` (a `ContainerExceptionInterface`) while the listener provider is built, rather than being skipped silently.
+Every string entry is a container service id resolved lazily through the container; a string is never treated as a callable. An id the container does not have - as well as an array spec with no `listener` key - throws `InvalidListenerConfigurationException` (a `ContainerExceptionInterface`) while the listener provider is built, rather than being skipped silently.
 
 ## Middleware
 
@@ -150,7 +150,7 @@ ConfigProvider ──▶ container wiring (aliases, factories, listeners)
 | `ListenerInterface` | `Webware\Event` | Contract a listener satisfies (`__invoke(EventInterface $event): void`) |
 | `EventPropagationInterface` / `EventPropagationTrait` | `Webware\Event` | Pattern for stoppable propagation |
 
-Config arrays are typed by the `@type ConfigShape` alias declared on `Webware\Event\ConfigProvider` —
+Config arrays are typed by the `@type ConfigShape` alias declared on `Webware\Event\ConfigProvider` -
 consumers `@import-type ConfigShape from ConfigProvider` and read the keys directly, rather than going
 through an accessor class. The traits declare `@require-implements`, so mago reports a class that uses a
 trait without also implementing its interface.

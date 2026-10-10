@@ -23,7 +23,7 @@ interface EventPropagationInterface
 
     // Deliberately a flag-bearing signature: this contract mirrors
     // Laminas\EventManager\EventInterface::stopPropagation(bool $flag = true),
-    // and PSR-14 declares no stop method at all — its StoppableEventInterface
+    // and PSR-14 declares no stop method at all - its StoppableEventInterface
     // carries only isPropagationStopped(). Reshaping it to satisfy the linter
     // would change the contract every consumer adopts, so it stands as is.
     // @mago-expect lint:no-boolean-flag-parameter

@@ -19,7 +19,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Requires any class using this trait to also implement the paired
- * {@see EventDispatcherAwareInterface} — mago reports `missing-required-interface` otherwise.
+ * {@see EventDispatcherAwareInterface} - mago reports `missing-required-interface` otherwise.
  *
  * @api
  *
