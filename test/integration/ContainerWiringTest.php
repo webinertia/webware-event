@@ -32,8 +32,8 @@ use WebwareTestIntegration\Event\Asset\RecordingListener;
 use WebwareTestIntegration\Event\Asset\RecordingListenerProvider;
 
 /**
- * Builds a container the way an application does — this package's provider
- * aggregated with phly's, which is what supplies the dispatcher — then uses the
+ * Builds a container the way an application does - this package's provider
+ * aggregated with phly's, which is what supplies the dispatcher - then uses the
  * documented config keys for real.
  */
 #[CoversClass(InvalidListenerConfigurationException::class)]

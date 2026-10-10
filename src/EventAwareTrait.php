@@ -18,7 +18,7 @@ use Override;
 
 /**
  * Requires any class using this trait to also implement the paired
- * {@see EventAwareInterface} — mago reports `missing-required-interface` otherwise.
+ * {@see EventAwareInterface} - mago reports `missing-required-interface` otherwise.
  *
  * @api
  *
