@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace WebwareTest\Event;
 
+use ArrayObject;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Test;
@@ -24,6 +25,8 @@ use Webware\Event\Exception\InvalidListenerConfigurationException;
 
 #[CoversClass(InvalidListenerConfigurationException::class)]
 #[CoversMethod(InvalidListenerConfigurationException::class, 'forInvalidEntry')]
+#[CoversMethod(InvalidListenerConfigurationException::class, 'forInvalidProviderService')]
+#[CoversMethod(InvalidListenerConfigurationException::class, 'forUnresolvableProviderService')]
 #[CoversMethod(InvalidListenerConfigurationException::class, 'forUnresolvableService')]
 final class InvalidListenerConfigurationExceptionTest extends TestCase
 {
@@ -34,6 +37,32 @@ final class InvalidListenerConfigurationExceptionTest extends TestCase
 
         static::assertSame(
             'A listener entry must be a container service id or a callable; received array.',
+            $exception->getMessage(),
+        );
+    }
+
+    #[Test]
+    public function forInvalidProviderServiceNamesTheProviderIdAndReceivedType(): void
+    {
+        $exception = InvalidListenerConfigurationException::forInvalidProviderService(
+            'some.Service',
+            new ArrayObject(),
+        );
+
+        static::assertSame(
+            'Listener provider "some.Service" must implement Psr\EventDispatcher\ListenerProviderInterface;'
+                . ' received ArrayObject.',
+            $exception->getMessage(),
+        );
+    }
+
+    #[Test]
+    public function forUnresolvableProviderServiceNamesTheProviderId(): void
+    {
+        $exception = InvalidListenerConfigurationException::forUnresolvableProviderService('not.registered.Provider');
+
+        static::assertSame(
+            'Listener provider "not.registered.Provider" is not registered in the container.',
             $exception->getMessage(),
         );
     }

@@ -98,6 +98,10 @@ The `EventDispatcherMiddleware` attaches the dispatcher as a request attribute. 
 | `listeners` | `array<class-string, array>` | Event class → listener specs. Merged with app config. |
 | `listener_providers` | `array<class-string>` | Additional `ListenerProviderInterface` FQCNs to attach to the aggregate. |
 
+Provider resolution fails loudly, on the same policy as listener resolution: a `listener_providers` entry the
+container does not have, or one that resolves to something other than a `ListenerProviderInterface`, throws
+`InvalidListenerConfigurationException` while the aggregate is built.
+
 ### Listener spec formats
 
 | Format | Example | Behavior |

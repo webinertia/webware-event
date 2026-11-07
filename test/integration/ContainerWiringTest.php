@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace WebwareTestIntegration\Event;
 
+use ArrayObject;
 use Laminas\ServiceManager\ServiceManager;
 use Phly\EventDispatcher\ConfigProvider as DispatcherConfigProvider;
 use Phly\EventDispatcher\EventDispatcher;
@@ -39,6 +40,8 @@ use WebwareTestIntegration\Event\Asset\RecordingListenerProvider;
 #[CoversClass(InvalidListenerConfigurationException::class)]
 #[CoversClass(ListenerProviderAggregateFactory::class)]
 #[CoversMethod(InvalidListenerConfigurationException::class, 'forInvalidEntry')]
+#[CoversMethod(InvalidListenerConfigurationException::class, 'forInvalidProviderService')]
+#[CoversMethod(InvalidListenerConfigurationException::class, 'forUnresolvableProviderService')]
 #[CoversMethod(InvalidListenerConfigurationException::class, 'forUnresolvableService')]
 #[CoversMethod(ListenerProviderAggregateFactory::class, '__invoke')]
 final class ContainerWiringTest extends TestCase
@@ -186,6 +189,23 @@ final class ContainerWiringTest extends TestCase
     }
 
     #[Test]
+    public function listenerProviderThatIsNotAListenerProviderIsRejected(): void
+    {
+        $container = $this->createContainer(
+            listenerProviders: [ArrayObject::class],
+            services: [ArrayObject::class => new ArrayObject()],
+        );
+
+        $this->expectException(InvalidListenerConfigurationException::class);
+        $this->expectExceptionMessage(
+            'Listener provider "ArrayObject" must implement Psr\EventDispatcher\ListenerProviderInterface;'
+                . ' received ArrayObject.',
+        );
+
+        $container->get(EventDispatcherInterface::class);
+    }
+
+    #[Test]
     public function prioritizedListenerReceivesDispatchedEvent(): void
     {
         $handled   = [];
@@ -203,6 +223,19 @@ final class ContainerWiringTest extends TestCase
         $container->get(EventDispatcherInterface::class)->dispatch(new Event());
 
         static::assertSame([Event::class], $handled);
+    }
+
+    #[Test]
+    public function unregisteredListenerProviderServiceIsRejected(): void
+    {
+        $container = $this->createContainer(listenerProviders: ['not.registered.Provider']);
+
+        $this->expectException(InvalidListenerConfigurationException::class);
+        $this->expectExceptionMessage(
+            'Listener provider "not.registered.Provider" is not registered in the container.',
+        );
+
+        $container->get(EventDispatcherInterface::class);
     }
 
     #[Test]

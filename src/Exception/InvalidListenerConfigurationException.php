@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace Webware\Event\Exception;
 
 use Psr\Container\ContainerExceptionInterface;
+use Psr\EventDispatcher\ListenerProviderInterface;
 use RuntimeException;
 
 use function get_debug_type;
@@ -35,6 +36,24 @@ final class InvalidListenerConfigurationException extends RuntimeException imple
         return new self(sprintf(
             'A listener entry must be a container service id or a callable; received %s.',
             get_debug_type($entry),
+        ));
+    }
+
+    public static function forInvalidProviderService(string $service, mixed $provider): self
+    {
+        return new self(sprintf(
+            'Listener provider "%s" must implement %s; received %s.',
+            $service,
+            ListenerProviderInterface::class,
+            get_debug_type($provider),
+        ));
+    }
+
+    public static function forUnresolvableProviderService(string $service): self
+    {
+        return new self(sprintf(
+            'Listener provider "%s" is not registered in the container.',
+            $service,
         ));
     }
 

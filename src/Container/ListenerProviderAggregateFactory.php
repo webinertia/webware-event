@@ -37,6 +37,24 @@ use function is_string;
 final class ListenerProviderAggregateFactory
 {
     /**
+     * Accepts a resolved provider service, rejecting anything that is not a `ListenerProviderInterface`.
+     *
+     * A `listener_providers` entry that resolves to the wrong kind of object is a configuration error rather
+     * than a provider to skip, for the same reason an unresolvable listener id is: skipping hides the mistake
+     * until the event that should have been handled silently never happens.
+     *
+     * @throws InvalidListenerConfigurationException
+     */
+    private function assertListenerProvider(string $service, mixed $provider): ListenerProviderInterface
+    {
+        if ($provider instanceof ListenerProviderInterface) {
+            return $provider;
+        }
+
+        throw InvalidListenerConfigurationException::forInvalidProviderService($service, $provider);
+    }
+
+    /**
      * Resolves a configured listener entry to a callable, deferring container lookups to `LazyListener`.
      *
      * A string entry is a container service id, never a callable string: ids are class-strings naming the
@@ -104,15 +122,10 @@ final class ListenerProviderAggregateFactory
 
         foreach ($listenerProviders as $provider) {
             if (! $container->has($provider)) {
-                continue;
+                throw InvalidListenerConfigurationException::forUnresolvableProviderService($provider);
             }
 
-            /** @var ListenerProviderInterface|null $providerInstance */
-            $providerInstance = $container->get($provider);
-
-            if ($providerInstance instanceof ListenerProviderInterface) {
-                $aggregate->attach($providerInstance);
-            }
+            $aggregate->attach($this->assertListenerProvider($provider, $container->get($provider)));
         }
 
         $aggregate->attach($prioritizedProvider);
