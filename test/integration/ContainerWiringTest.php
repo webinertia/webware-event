@@ -83,6 +83,20 @@ final class ContainerWiringTest extends TestCase
     }
 
     #[Test]
+    public function duplicatedListenerEntryFiresTwice(): void
+    {
+        $listener  = new RecordingListener();
+        $container = $this->createContainer(
+            listeners: [Event::class => [RecordingListener::class, RecordingListener::class]],
+            services: [RecordingListener::class => $listener],
+        );
+
+        $container->get(EventDispatcherInterface::class)->dispatch(new Event());
+
+        static::assertSame([Event::class, Event::class], $listener->handled);
+    }
+
+    #[Test]
     public function everyListenerForAnEventIsRegisteredRegardlessOfDeclaredForm(): void
     {
         $handled   = [];

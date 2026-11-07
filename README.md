@@ -108,6 +108,16 @@ The `EventDispatcherMiddleware` attaches the dispatcher as a request attribute. 
 
 Every string entry is a container service id resolved lazily through the container; a string is never treated as a callable. An id the container does not have - as well as an array spec with no `listener` key - throws `InvalidListenerConfigurationException` (a `ContainerExceptionInterface`) while the listener provider is built, rather than being skipped silently.
 
+### Registering the same listener twice
+
+Registration is a declaration of interest, so declaring interest twice makes the listener run twice. There is no
+suppression: two entries naming the same listener class both fire, in the order the entries appear in config.
+
+This is deliberate and pinned by a test. The vendor providers dedupe with `in_array($listener, $listeners, true)`,
+which matches only an identical callable instance; the factory wraps each string entry in its own `LazyListener`,
+so two entries naming the same class are distinct callables and the dedupe never sees them as equal. Applications
+that want a listener to run once should register it once.
+
 ## Middleware
 
 `EventDispatcherMiddleware` (PSR-15) injects the event dispatcher into the request as an attribute keyed by `EventDispatcherInterface::class`. Register it in your middleware pipeline to make the dispatcher available to all downstream handlers.
