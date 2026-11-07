@@ -19,6 +19,7 @@ use Psr\EventDispatcher\ListenerProviderInterface;
 use RuntimeException;
 
 use function get_debug_type;
+use function implode;
 use function sprintf;
 
 /**
@@ -31,6 +32,35 @@ use function sprintf;
  */
 final class InvalidListenerConfigurationException extends RuntimeException implements ContainerExceptionInterface
 {
+    public static function forConflictingOrdering(string $eventType): self
+    {
+        return new self(sprintf(
+            'A listener for event "%s" declares "priority" together with "before" or "after";'
+                . ' priority and relative placement cannot be combined.',
+            $eventType,
+        ));
+    }
+
+    public static function forConflictingRelation(string $eventType): self
+    {
+        return new self(sprintf(
+            'A listener for event "%s" declares both "before" and "after"; use one or the other.',
+            $eventType,
+        ));
+    }
+
+    /**
+     * @param list<string> $listenerTypes the cycle, in order, with the first type repeated to close it
+     */
+    public static function forCyclicOrdering(string $eventType, array $listenerTypes): self
+    {
+        return new self(sprintf(
+            'Listener ordering for event "%s" contains a cycle: %s.',
+            $eventType,
+            implode(' -> ', $listenerTypes),
+        ));
+    }
+
     public static function forInvalidEntry(mixed $entry): self
     {
         return new self(sprintf(
@@ -46,6 +76,15 @@ final class InvalidListenerConfigurationException extends RuntimeException imple
             $service,
             ListenerProviderInterface::class,
             get_debug_type($provider),
+        ));
+    }
+
+    public static function forUnresolvableListenerReference(string $eventType, string $reference): self
+    {
+        return new self(sprintf(
+            'Listener reference "%s" for event "%s" does not name a listener registered for that event.',
+            $reference,
+            $eventType,
         ));
     }
 

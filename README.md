@@ -95,7 +95,7 @@ The `EventDispatcherMiddleware` attaches the dispatcher as a request attribute. 
 | Key | Type | Description |
 | --- | --- | --- |
 | `dependencies` | `array` | Container aliases & factories for the dispatcher, aggregate, and middleware. |
-| `listeners` | `array<class-string, array>` | Event class → listener specs. Merged with app config. |
+| `listeners` | `array<class-string, array>` | Event class → listener specs, each optionally ordered by `priority`, `before`, or `after`. Merged with app config. |
 | `listener_providers` | `array<class-string>` | Additional `ListenerProviderInterface` FQCNs to attach to the aggregate. |
 
 Provider resolution fails loudly, on the same policy as listener resolution: a `listener_providers` entry the
@@ -107,25 +107,60 @@ container does not have, or one that resolves to something other than a `Listene
 | Format | Example | Behavior |
 | --- | --- | --- |
 | Class-string | `SendEmail::class` | Lazy-resolved from container via `LazyListener` |
-| Array with `priority` | `['listener' => X::class, 'priority' => 100]` | Resolved via `PrioritizedListenerProvider` |
+| Array with `priority` | `['listener' => X::class, 'priority' => 100]` | Placed in the numeric range, highest number first |
+| Array with `after` | `['listener' => X::class, 'after' => Y::class]` | Placed immediately after the listener named `Y` |
+| Array with `before` | `['listener' => X::class, 'before' => Y::class]` | Placed immediately before the listener named `Y` |
 | Callable | `fn(Event $e) => ...` | Attached directly |
 
 Every string entry is a container service id resolved lazily through the container; a string is never treated as a callable. An id the container does not have - as well as an array spec with no `listener` key - throws `InvalidListenerConfigurationException` (a `ContainerExceptionInterface`) while the listener provider is built, rather than being skipped silently.
 
 ### Listener ordering
 
-Listeners run in two tiers, and the tiers never interleave.
+Every listener for an event is resolved by one provider, `PositionableListenerProvider`, so numeric priorities
+and relative placement compose into a single sequence. Order is resolved when listeners are read for an event,
+not when they are registered.
 
-| Tier | Declared as | Order within the tier |
-| --- | --- | --- |
-| Prioritized | `['listener' => X::class, 'priority' => 100]` | `priority` descending; equal priorities in registration order |
-| Unprioritized | `X::class` or `['listener' => X::class]` | Registration order only |
+Resolution rules:
 
-Every prioritized listener runs before every unprioritized listener, whatever the numbers are. An absent
-priority is **not** a default priority of `1`: a listener declared at priority `-100` still fires before an
-unprioritized listener, because the unprioritized group is a later provider tier rather than a priority band.
-Use `priority` when a listener needs to sit inside the numeric range, and rely on declaration order when it
-only needs to run after everything prioritized.
+1. Entries carrying `priority` sort by number, descending. Equal numbers keep registration order.
+2. An entry with no `priority` sorts after every prioritized entry. An absent priority is **not** a default
+   priority of `1`: a listener declared at priority `-100` still runs before an unprioritized listener.
+3. An entry with `before` or `after` runs immediately before or after the listener it names. Positioned
+   listeners keep registration order among themselves, and positioning nests.
+
+Resolving both kinds of ordering inside one provider is deliberate. `ListenerProviderAggregate` yields provider
+by provider, so relative placement in a tier of its own would form one contiguous block that could never
+interleave with prioritized listeners. One provider is what lets an `after` listener sit between two prioritized
+listeners.
+
+### Relative placement
+
+```php
+'listeners' => [
+    SomeEvent::class => [
+        FirstListener::class,
+        ['listener' => SecondListener::class, 'after' => FirstListener::class],
+        ['listener' => ThirdListener::class, 'before' => FirstListener::class],
+    ],
+],
+```
+
+That config runs `ThirdListener`, then `FirstListener`, then `SecondListener`. Relative placement lets a package
+say "after that listener" without knowing its priority, so two packages contributing listeners for the same event
+do not have to agree on numbers in one global priority space.
+
+A listener is identified by the string written in config, which is the container service id or class-string, so
+`after` names the same string the anchor is registered under. A plain callable has no identifier: it can be
+positioned relative to an anchor, but nothing can be positioned relative to it.
+
+- Forward references work. `after` may name a listener declared later in the same event's list, because ordering
+  resolves when listeners are read.
+- An unknown anchor throws `InvalidListenerConfigurationException` while the aggregate is built.
+- A cycle throws `InvalidListenerConfigurationException` naming the path, for example `A -> B -> A`. A listener
+  positioned relative to itself is the one-element cycle `A -> A`.
+- `priority` cannot be combined with `before` or `after`, and `before` cannot be combined with `after`. Each
+  throws `InvalidListenerConfigurationException`.
+- When one listener type is registered more than once, the first registration is the anchor.
 
 ### Registering the same listener twice
 

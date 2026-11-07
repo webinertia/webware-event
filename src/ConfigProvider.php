@@ -22,16 +22,23 @@ use Psr\EventDispatcher\ListenerProviderInterface;
 /**
  * Listener ordering.
  *
- * A listener spec carrying a `priority` is registered on a prioritized provider and runs in descending
- * priority order. A spec without a priority is registered on a separate, unprioritized provider in
- * declaration order. The two are separate tiers and provider tiers cannot interleave, so every
- * unprioritized listener runs after every prioritized listener, negative priorities included.
+ * A listener spec carrying a `priority` runs in descending priority order. A spec without a priority runs in
+ * declaration order, after every listener that has a priority. An absent priority is therefore not a priority
+ * of 1: a listener registered at priority -100 still fires before an unprioritized listener, because the
+ * unprioritized group runs after the entire numeric range.
  *
- * An absent priority is therefore not a priority of 1: a listener registered at priority -100 still fires
- * before an unprioritized listener. The unprioritized group is ordered by registration alone.
+ * A spec may instead position itself relative to another listener for the same event with `after` or
+ * `before`, naming the service id or class-string the other spec was declared with. Relative placement needs no
+ * shared numeric space, so separate packages can order themselves against a listener they do not own. The
+ * reference may point at a spec declared later, and an unresolvable reference or a cycle is a configuration
+ * error. A spec may not combine `priority` with `before` or `after`, nor declare both `before` and `after`.
+ *
+ * Priority and relative placement both resolve inside `PositionableListenerProvider`. They cannot be split
+ * across provider tiers: `ListenerProviderAggregate` yields one provider at a time, so a relative tier would
+ * form a contiguous block that could never sit between prioritized listeners.
  *
  * @type ConfigShape = array{
- *     listeners: array<class-string, array<int, array{listener: class-string<ListenerInterface>|callable, priority?: int}|class-string<ListenerInterface>|callable>>,
+ *     listeners: array<class-string, array<int, array{listener: class-string<ListenerInterface>|callable, priority?: int, before?: string, after?: string}|class-string<ListenerInterface>|callable>>,
  *     listener_providers: list<class-string>,
  *     ...<string, mixed>,
  * }
@@ -43,7 +50,10 @@ final readonly class ConfigProvider
     public const string LISTENER_PROVIDER_KEY = 'listener_providers';
 
     /**
-     * @return array{aliases: array<class-string, class-string>, factories: array<class-string, class-string>}
+     * @return array{
+     *     aliases: array<class-string, class-string>,
+     *     factories: array<class-string, class-string>,
+     * }
      */
     public function getDependencies(): array
     {

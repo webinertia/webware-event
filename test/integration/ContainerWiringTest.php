@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace WebwareTestIntegration\Event;
 
 use ArrayObject;
+use Closure;
 use Laminas\ServiceManager\ServiceManager;
 use Phly\EventDispatcher\ConfigProvider as DispatcherConfigProvider;
 use Phly\EventDispatcher\EventDispatcher;
@@ -29,6 +30,7 @@ use Webware\Event\ConfigProvider;
 use Webware\Event\Container\ListenerProviderAggregateFactory;
 use Webware\Event\Event;
 use Webware\Event\Exception\InvalidListenerConfigurationException;
+use Webware\Event\ListenerProvider\PositionableListenerProvider;
 use WebwareTestIntegration\Event\Asset\RecordingListener;
 use WebwareTestIntegration\Event\Asset\RecordingListenerProvider;
 
@@ -39,13 +41,29 @@ use WebwareTestIntegration\Event\Asset\RecordingListenerProvider;
  */
 #[CoversClass(InvalidListenerConfigurationException::class)]
 #[CoversClass(ListenerProviderAggregateFactory::class)]
+#[CoversClass(PositionableListenerProvider::class)]
+#[CoversMethod(InvalidListenerConfigurationException::class, 'forConflictingOrdering')]
+#[CoversMethod(InvalidListenerConfigurationException::class, 'forConflictingRelation')]
+#[CoversMethod(InvalidListenerConfigurationException::class, 'forCyclicOrdering')]
 #[CoversMethod(InvalidListenerConfigurationException::class, 'forInvalidEntry')]
 #[CoversMethod(InvalidListenerConfigurationException::class, 'forInvalidProviderService')]
+#[CoversMethod(InvalidListenerConfigurationException::class, 'forUnresolvableListenerReference')]
 #[CoversMethod(InvalidListenerConfigurationException::class, 'forUnresolvableProviderService')]
 #[CoversMethod(InvalidListenerConfigurationException::class, 'forUnresolvableService')]
 #[CoversMethod(ListenerProviderAggregateFactory::class, '__invoke')]
+#[CoversMethod(PositionableListenerProvider::class, 'getListenersForEvent')]
 final class ContainerWiringTest extends TestCase
 {
+    /**
+     * @param list<string> $order
+     */
+    private static function recorder(array &$order, string $label): Closure
+    {
+        return static function () use (&$order, $label): void {
+            $order[] = $label;
+        };
+    }
+
     #[Test]
     public function arrayListenerWithoutPriorityIsRegisteredExactlyOnce(): void
     {
@@ -66,12 +84,56 @@ final class ContainerWiringTest extends TestCase
     }
 
     #[Test]
+    public function beforeAndAfterTogetherAreRejected(): void
+    {
+        $container = $this->createContainer(listeners: [
+            Event::class => [
+                ['listener' => 'listener.a', 'before' => 'listener.b', 'after' => 'listener.c'],
+            ],
+        ]);
+
+        $this->expectException(InvalidListenerConfigurationException::class);
+        $this->expectExceptionMessage(
+            'A listener for event "Webware\Event\Event" declares both "before" and "after";'
+                . ' use one or the other.',
+        );
+
+        $container->get(EventDispatcherInterface::class);
+    }
+
+    #[Test]
     public function callableStringIsNotAcceptedAsAListener(): void
     {
         $container = $this->createContainer(listeners: [Event::class => ['strtolower']]);
 
         $this->expectException(InvalidListenerConfigurationException::class);
         $this->expectExceptionMessage('Listener service "strtolower" is not registered in the container.');
+
+        $container->get(EventDispatcherInterface::class);
+    }
+
+    #[Test]
+    public function cyclicListenerOrderingIsRejected(): void
+    {
+        $order     = [];
+        $container = $this->createContainer(
+            listeners: [
+                Event::class => [
+                    ['listener' => 'listener.a', 'after' => 'listener.b'],
+                    ['listener' => 'listener.b', 'after' => 'listener.a'],
+                ],
+            ],
+            services: [
+                'listener.a' => self::recorder($order, 'a'),
+                'listener.b' => self::recorder($order, 'b'),
+            ],
+        );
+
+        $this->expectException(InvalidListenerConfigurationException::class);
+        $this->expectExceptionMessage(
+            'Listener ordering for event "Webware\Event\Event"'
+                . ' contains a cycle: listener.b -> listener.a -> listener.b.',
+        );
 
         $container->get(EventDispatcherInterface::class);
     }
@@ -226,6 +288,96 @@ final class ContainerWiringTest extends TestCase
     }
 
     #[Test]
+    public function priorityCombinedWithRelativePlacementIsRejected(): void
+    {
+        $container = $this->createContainer(listeners: [
+            Event::class => [
+                ['listener' => 'listener.a', 'priority' => 5, 'after' => 'listener.b'],
+            ],
+        ]);
+
+        $this->expectException(InvalidListenerConfigurationException::class);
+        $this->expectExceptionMessage(
+            'A listener for event "Webware\Event\Event" declares "priority" together with'
+                . ' "before" or "after"; priority and relative placement cannot be combined.',
+        );
+
+        $container->get(EventDispatcherInterface::class);
+    }
+
+    #[Test]
+    public function relativePlacementComposesWithPriorityInOneProvider(): void
+    {
+        $order     = [];
+        $container = $this->createContainer(
+            listeners: [
+                Event::class => [
+                    'listener.anchor',
+                    ['listener' => 'listener.after', 'after' => 'listener.anchor'],
+                    ['listener' => 'listener.top', 'priority' => 50],
+                    'listener.tail',
+                ],
+            ],
+            services: [
+                'listener.anchor' => self::recorder($order, 'anchor'),
+                'listener.after'  => self::recorder($order, 'after'),
+                'listener.tail'   => self::recorder($order, 'tail'),
+                'listener.top'    => self::recorder($order, 'top'),
+            ],
+        );
+
+        $container->get(EventDispatcherInterface::class)->dispatch(new Event());
+
+        static::assertSame(['top', 'anchor', 'after', 'tail'], $order);
+    }
+
+    #[Test]
+    public function relativePlacementOrdersListenersAroundTheirAnchor(): void
+    {
+        $order     = [];
+        $container = $this->createContainer(
+            listeners: [
+                Event::class => [
+                    'listener.anchor',
+                    ['listener' => 'listener.after', 'after' => 'listener.anchor'],
+                    ['listener' => 'listener.before', 'before' => 'listener.anchor'],
+                ],
+            ],
+            services: [
+                'listener.after'  => self::recorder($order, 'after'),
+                'listener.anchor' => self::recorder($order, 'anchor'),
+                'listener.before' => self::recorder($order, 'before'),
+            ],
+        );
+
+        $container->get(EventDispatcherInterface::class)->dispatch(new Event());
+
+        static::assertSame(['before', 'anchor', 'after'], $order);
+    }
+
+    #[Test]
+    public function relativePlacementResolvesAForwardReference(): void
+    {
+        $order     = [];
+        $container = $this->createContainer(
+            listeners: [
+                Event::class => [
+                    ['listener' => 'listener.after', 'after' => 'listener.anchor'],
+                    'listener.anchor',
+                ],
+            ],
+            services: [
+                'listener.after'  => self::recorder($order, 'after'),
+                'listener.anchor' => self::recorder($order, 'anchor'),
+            ],
+        );
+
+        $container->get(EventDispatcherInterface::class)->dispatch(new Event());
+
+        static::assertSame(['anchor', 'after'], $order);
+    }
+
+    #[Test]
     public function unprioritizedListenerRunsAfterEveryPrioritizedListener(): void
     {
         $order     = [];
@@ -276,9 +428,32 @@ final class ContainerWiringTest extends TestCase
         $container->get(EventDispatcherInterface::class);
     }
 
+    #[Test]
+    public function unresolvableListenerReferenceIsRejectedWhenTheContainerIsBuilt(): void
+    {
+        $order     = [];
+        $container = $this->createContainer(
+            listeners: [
+                Event::class => [
+                    ['listener' => 'listener.after', 'after' => 'listener.missing'],
+                ],
+            ],
+            services: ['listener.after' => self::recorder($order, 'after')],
+        );
+
+        $this->expectException(InvalidListenerConfigurationException::class);
+        $this->expectExceptionMessage(
+            'Listener reference "listener.missing" for event "Webware\Event\Event"'
+                . ' does not name a listener registered for that event.',
+        );
+
+        $container->get(EventDispatcherInterface::class);
+    }
+
     /**
-     * @param array<class-string, array<int, array{listener?: callable|string, priority?: int}|callable|string>> $listeners
-     * @param list<class-string>                                                                                  $listenerProviders
+     * @param array<class-string, array<int, array{listener?: callable|string, priority?: int, before?: string, after?: string}|callable|string>> $listeners
+     * @param list<class-string>                                                                                                          $listenerProviders
+     * @param array<string, mixed>                                                                                                        $services
      */
     private function createContainer(
         array $listeners = [],
