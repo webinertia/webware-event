@@ -20,6 +20,16 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\EventDispatcher\ListenerProviderInterface;
 
 /**
+ * Listener ordering.
+ *
+ * A listener spec carrying a `priority` is registered on a prioritized provider and runs in descending
+ * priority order. A spec without a priority is registered on a separate, unprioritized provider in
+ * declaration order. The two are separate tiers and provider tiers cannot interleave, so every
+ * unprioritized listener runs after every prioritized listener, negative priorities included.
+ *
+ * An absent priority is therefore not a priority of 1: a listener registered at priority -100 still fires
+ * before an unprioritized listener. The unprioritized group is ordered by registration alone.
+ *
  * @type ConfigShape = array{
  *     listeners: array<class-string, array<int, array{listener: class-string<ListenerInterface>|callable, priority?: int}|class-string<ListenerInterface>|callable>>,
  *     listener_providers: list<class-string>,

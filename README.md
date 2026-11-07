@@ -112,6 +112,21 @@ container does not have, or one that resolves to something other than a `Listene
 
 Every string entry is a container service id resolved lazily through the container; a string is never treated as a callable. An id the container does not have - as well as an array spec with no `listener` key - throws `InvalidListenerConfigurationException` (a `ContainerExceptionInterface`) while the listener provider is built, rather than being skipped silently.
 
+### Listener ordering
+
+Listeners run in two tiers, and the tiers never interleave.
+
+| Tier | Declared as | Order within the tier |
+| --- | --- | --- |
+| Prioritized | `['listener' => X::class, 'priority' => 100]` | `priority` descending; equal priorities in registration order |
+| Unprioritized | `X::class` or `['listener' => X::class]` | Registration order only |
+
+Every prioritized listener runs before every unprioritized listener, whatever the numbers are. An absent
+priority is **not** a default priority of `1`: a listener declared at priority `-100` still fires before an
+unprioritized listener, because the unprioritized group is a later provider tier rather than a priority band.
+Use `priority` when a listener needs to sit inside the numeric range, and rely on declaration order when it
+only needs to run after everything prioritized.
+
 ### Registering the same listener twice
 
 Registration is a declaration of interest, so declaring interest twice makes the listener run twice. There is no

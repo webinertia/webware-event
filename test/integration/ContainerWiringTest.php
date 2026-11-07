@@ -226,6 +226,31 @@ final class ContainerWiringTest extends TestCase
     }
 
     #[Test]
+    public function unprioritizedListenerRunsAfterEveryPrioritizedListener(): void
+    {
+        $order     = [];
+        $container = $this->createContainer([
+            Event::class => [
+                [
+                    'listener' => static function (Event $event) use (&$order): void {
+                        $order[] = 'unprioritized';
+                    },
+                ],
+                [
+                    'listener' => static function (Event $event) use (&$order): void {
+                        $order[] = 'negative priority';
+                    },
+                    'priority' => -100,
+                ],
+            ],
+        ]);
+
+        $container->get(EventDispatcherInterface::class)->dispatch(new Event());
+
+        static::assertSame(['negative priority', 'unprioritized'], $order);
+    }
+
+    #[Test]
     public function unregisteredListenerProviderServiceIsRejected(): void
     {
         $container = $this->createContainer(listenerProviders: ['not.registered.Provider']);
