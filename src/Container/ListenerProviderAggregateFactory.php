@@ -15,17 +15,15 @@ declare(strict_types=1);
 namespace Webware\Event\Container;
 
 use Phly\EventDispatcher\LazyListener;
-use Phly\EventDispatcher\ListenerProvider\AttachableListenerProvider;
 use Phly\EventDispatcher\ListenerProvider\ListenerProviderAggregate;
-use Phly\EventDispatcher\ListenerProvider\PrioritizedListenerProvider;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Psr\EventDispatcher\ListenerProviderInterface;
 use Webware\Event\ConfigProvider;
 use Webware\Event\Exception\InvalidListenerConfigurationException;
+use Webware\Event\ListenerProvider\PositionableListenerProvider;
 
-use function is_array;
 use function is_callable;
 use function is_string;
 
@@ -36,6 +34,24 @@ use function is_string;
  */
 final class ListenerProviderAggregateFactory
 {
+    /**
+     * Accepts a resolved provider service, rejecting anything that is not a `ListenerProviderInterface`.
+     *
+     * A `listener_providers` entry that resolves to the wrong kind of object is a configuration error rather
+     * than a provider to skip, for the same reason an unresolvable listener id is: skipping hides the mistake
+     * until the event that should have been handled silently never happens.
+     *
+     * @throws InvalidListenerConfigurationException
+     */
+    private function assertListenerProvider(string $service, mixed $provider): ListenerProviderInterface
+    {
+        if ($provider instanceof ListenerProviderInterface) {
+            return $provider;
+        }
+
+        throw InvalidListenerConfigurationException::forInvalidProviderService($service, $provider);
+    }
+
     /**
      * Resolves a configured listener entry to a callable, deferring container lookups to `LazyListener`.
      *
@@ -75,48 +91,32 @@ final class ListenerProviderAggregateFactory
         $listeners         = $config[ConfigProvider::LISTENER_KEY];
         $listenerProviders = $config[ConfigProvider::LISTENER_PROVIDER_KEY];
 
-        $prioritizedProvider = $container->get(PrioritizedListenerProvider::class);
-        $attachableProvider  = $container->get(AttachableListenerProvider::class);
-
         $aggregate = new ListenerProviderAggregate();
+        $provider  = new PositionableListenerProvider();
 
         foreach ($listeners as $eventType => $spec) {
-            foreach ($spec as $listener) {
-                if (! is_array($listener)) {
-                    $attachableProvider->listen($eventType, $this->resolveListener($container, $listener));
+            foreach ($spec as $entry) {
+                $declaration = ListenerDeclaration::fromSpec($eventType, $entry);
 
-                    continue;
-                }
-
-                $resolved = $this->resolveListener($container, $listener['listener'] ?? null);
-
-                $priority = $listener['priority'] ?? null;
-
-                if (null === $priority) {
-                    $attachableProvider->listen($eventType, $resolved);
-
-                    continue;
-                }
-
-                $prioritizedProvider->listen($eventType, $resolved, $priority);
+                $declaration->registerWith(
+                    $provider,
+                    $eventType,
+                    $this->resolveListener($container, $declaration->service),
+                );
             }
         }
 
-        foreach ($listenerProviders as $provider) {
-            if (! $container->has($provider)) {
-                continue;
+        $provider->validateOrdering();
+
+        foreach ($listenerProviders as $providerService) {
+            if (! $container->has($providerService)) {
+                throw InvalidListenerConfigurationException::forUnresolvableProviderService($providerService);
             }
 
-            /** @var ListenerProviderInterface|null $providerInstance */
-            $providerInstance = $container->get($provider);
-
-            if ($providerInstance instanceof ListenerProviderInterface) {
-                $aggregate->attach($providerInstance);
-            }
+            $aggregate->attach($this->assertListenerProvider($providerService, $container->get($providerService)));
         }
 
-        $aggregate->attach($prioritizedProvider);
-        $aggregate->attach($attachableProvider);
+        $aggregate->attach($provider);
 
         return $aggregate;
     }

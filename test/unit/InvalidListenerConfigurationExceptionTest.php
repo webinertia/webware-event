@@ -14,19 +14,64 @@ declare(strict_types=1);
 
 namespace WebwareTest\Event;
 
+use ArrayObject;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerExceptionInterface;
 use RuntimeException;
+use Webware\Event\Event;
 use Webware\Event\Exception\InvalidListenerConfigurationException;
 
 #[CoversClass(InvalidListenerConfigurationException::class)]
+#[CoversMethod(InvalidListenerConfigurationException::class, 'forConflictingOrdering')]
+#[CoversMethod(InvalidListenerConfigurationException::class, 'forConflictingRelation')]
+#[CoversMethod(InvalidListenerConfigurationException::class, 'forCyclicOrdering')]
 #[CoversMethod(InvalidListenerConfigurationException::class, 'forInvalidEntry')]
+#[CoversMethod(InvalidListenerConfigurationException::class, 'forInvalidProviderService')]
+#[CoversMethod(InvalidListenerConfigurationException::class, 'forUnresolvableListenerReference')]
+#[CoversMethod(InvalidListenerConfigurationException::class, 'forUnresolvableProviderService')]
 #[CoversMethod(InvalidListenerConfigurationException::class, 'forUnresolvableService')]
 final class InvalidListenerConfigurationExceptionTest extends TestCase
 {
+    #[Test]
+    public function forConflictingOrderingRejectsPriorityWithRelativePlacement(): void
+    {
+        $exception = InvalidListenerConfigurationException::forConflictingOrdering(Event::class);
+
+        static::assertSame(
+            'A listener for event "Webware\Event\Event" declares "priority" together with "before" or "after";'
+                . ' priority and relative placement cannot be combined.',
+            $exception->getMessage(),
+        );
+    }
+
+    #[Test]
+    public function forConflictingRelationRejectsBothRelations(): void
+    {
+        $exception = InvalidListenerConfigurationException::forConflictingRelation(Event::class);
+
+        static::assertSame(
+            'A listener for event "Webware\Event\Event" declares both "before" and "after"; use one or the other.',
+            $exception->getMessage(),
+        );
+    }
+
+    #[Test]
+    public function forCyclicOrderingJoinsTheCycleWithArrows(): void
+    {
+        $exception = InvalidListenerConfigurationException::forCyclicOrdering(
+            Event::class,
+            ['A', 'B', 'A'],
+        );
+
+        static::assertSame(
+            'Listener ordering for event "Webware\Event\Event" contains a cycle: A -> B -> A.',
+            $exception->getMessage(),
+        );
+    }
+
     #[Test]
     public function forInvalidEntryDescribesTheReceivedType(): void
     {
@@ -34,6 +79,47 @@ final class InvalidListenerConfigurationExceptionTest extends TestCase
 
         static::assertSame(
             'A listener entry must be a container service id or a callable; received array.',
+            $exception->getMessage(),
+        );
+    }
+
+    #[Test]
+    public function forInvalidProviderServiceNamesTheProviderIdAndReceivedType(): void
+    {
+        $exception = InvalidListenerConfigurationException::forInvalidProviderService(
+            'some.Service',
+            new ArrayObject(),
+        );
+
+        static::assertSame(
+            'Listener provider "some.Service" must implement Psr\EventDispatcher\ListenerProviderInterface;'
+                . ' received ArrayObject.',
+            $exception->getMessage(),
+        );
+    }
+
+    #[Test]
+    public function forUnresolvableListenerReferenceNamesTheReferenceAndEvent(): void
+    {
+        $exception = InvalidListenerConfigurationException::forUnresolvableListenerReference(
+            Event::class,
+            'Missing',
+        );
+
+        static::assertSame(
+            'Listener reference "Missing" for event "Webware\Event\Event"'
+                . ' does not name a listener registered for that event.',
+            $exception->getMessage(),
+        );
+    }
+
+    #[Test]
+    public function forUnresolvableProviderServiceNamesTheProviderId(): void
+    {
+        $exception = InvalidListenerConfigurationException::forUnresolvableProviderService('not.registered.Provider');
+
+        static::assertSame(
+            'Listener provider "not.registered.Provider" is not registered in the container.',
             $exception->getMessage(),
         );
     }
