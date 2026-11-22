@@ -123,7 +123,7 @@ final class ContainerWiringTest extends TestCase
                     ['listener' => 'listener.b', 'after' => 'listener.a'],
                 ],
             ],
-            services: [
+            services : [
                 'listener.a' => self::recorder($order, 'a'),
                 'listener.b' => self::recorder($order, 'b'),
             ],
@@ -153,7 +153,7 @@ final class ContainerWiringTest extends TestCase
         $listener  = new RecordingListener();
         $container = $this->createContainer(
             listeners: [Event::class => [RecordingListener::class, RecordingListener::class]],
-            services: [RecordingListener::class => $listener],
+            services : [RecordingListener::class => $listener],
         );
 
         $container->get(EventDispatcherInterface::class)->dispatch(new Event());
@@ -183,7 +183,7 @@ final class ContainerWiringTest extends TestCase
                     ],
                 ],
             ],
-            services: [RecordingListener::class => $listener],
+            services : [RecordingListener::class => $listener],
         );
 
         $container->get(EventDispatcherInterface::class)->dispatch(new Event());
@@ -209,7 +209,7 @@ final class ContainerWiringTest extends TestCase
         $listener  = new RecordingListener();
         $container = $this->createContainer(
             listeners: [Event::class => [RecordingListener::class]],
-            services: [RecordingListener::class => $listener],
+            services : [RecordingListener::class => $listener],
         );
 
         $container->get(EventDispatcherInterface::class)->dispatch(new Event());
@@ -242,7 +242,7 @@ final class ContainerWiringTest extends TestCase
         $provider  = new RecordingListenerProvider();
         $container = $this->createContainer(
             listenerProviders: [RecordingListenerProvider::class],
-            services: [RecordingListenerProvider::class => $provider],
+            services         : [RecordingListenerProvider::class => $provider],
         );
 
         $container->get(EventDispatcherInterface::class)->dispatch(new Event());
@@ -255,7 +255,7 @@ final class ContainerWiringTest extends TestCase
     {
         $container = $this->createContainer(
             listenerProviders: [ArrayObject::class],
-            services: [ArrayObject::class => new ArrayObject()],
+            services         : [ArrayObject::class => new ArrayObject()],
         );
 
         $this->expectException(InvalidListenerConfigurationException::class);
@@ -318,7 +318,7 @@ final class ContainerWiringTest extends TestCase
                     'listener.tail',
                 ],
             ],
-            services: [
+            services : [
                 'listener.anchor' => self::recorder($order, 'anchor'),
                 'listener.after'  => self::recorder($order, 'after'),
                 'listener.tail'   => self::recorder($order, 'tail'),
@@ -343,7 +343,7 @@ final class ContainerWiringTest extends TestCase
                     ['listener' => 'listener.before', 'before' => 'listener.anchor'],
                 ],
             ],
-            services: [
+            services : [
                 'listener.after'  => self::recorder($order, 'after'),
                 'listener.anchor' => self::recorder($order, 'anchor'),
                 'listener.before' => self::recorder($order, 'before'),
@@ -366,7 +366,7 @@ final class ContainerWiringTest extends TestCase
                     'listener.anchor',
                 ],
             ],
-            services: [
+            services : [
                 'listener.after'  => self::recorder($order, 'after'),
                 'listener.anchor' => self::recorder($order, 'anchor'),
             ],
@@ -438,7 +438,7 @@ final class ContainerWiringTest extends TestCase
                     ['listener' => 'listener.after', 'after' => 'listener.missing'],
                 ],
             ],
-            services: ['listener.after' => self::recorder($order, 'after')],
+            services : ['listener.after' => self::recorder($order, 'after')],
         );
 
         $this->expectException(InvalidListenerConfigurationException::class);

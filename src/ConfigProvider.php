@@ -63,8 +63,9 @@ final readonly class ConfigProvider
                 ListenerProviderInterface::class => ListenerProviderAggregate::class,
             ],
             'factories' => [
-                ListenerProviderAggregate::class                 => Container\ListenerProviderAggregateFactory::class,
-                Http\Middleware\EventDispatcherMiddleware::class => Http\Middleware\Container\EventDispatcherMiddlewareFactory::class,
+                ListenerProviderAggregate::class => Container\ListenerProviderAggregateFactory::class,
+                Http\Middleware\EventDispatcherMiddleware::class =>
+                    Http\Middleware\Container\EventDispatcherMiddlewareFactory::class,
             ],
         ];
     }
